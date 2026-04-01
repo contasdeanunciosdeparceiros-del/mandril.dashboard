@@ -1,13 +1,1459 @@
-Mandril · Dashboard de Performance
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mandril · Dashboard de Performance</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
-MANDRIL · PERFORMANCE
-Selecione a plataforma
-arraste ou clique para carregar o arquivo exportado
-Meta Ads
-Exportação CSV de Campanhas do Meta Ads Manager
-SELECIONAR CSV 
-Google Ads
-Cards da Visão Geral exportados como CSV (ZIP)
-SELECIONAR ZIP 
-os dados ficam apenas no seu navegador · sem upload para servidores
-// link copiado
+:root {
+  /* Meta palette — warm gold on near-black */
+  --c0: #0A0908;
+  --c1: #111010;
+  --c2: #171615;
+  --c3: #1F1D1C;
+  --c4: #2A2826;
+  --accent: #C9A052;
+  --accent2: #E2BC7A;
+  --accent3: rgba(201,160,82,0.08);
+  --accent-border: rgba(201,160,82,0.2);
+  --text: #F0EBE3;
+  --text-2: rgba(240,235,227,0.6);
+  --text-3: rgba(240,235,227,0.3);
+  --text-4: rgba(240,235,227,0.15);
+  --green: #4D9E72;
+  --red: #C06060;
+  --r: 10px;
+  --r-sm: 6px;
+}
+
+.g-theme {
+  --c0: #080C12;
+  --c1: #0D1119;
+  --c2: #111620;
+  --c3: #171D29;
+  --c4: #1E2535;
+  --accent: #4A86E8;
+  --accent2: #7BAAF7;
+  --accent3: rgba(74,134,232,0.07);
+  --accent-border: rgba(74,134,232,0.2);
+  --text: #E8EDF8;
+  --text-2: rgba(232,237,248,0.6);
+  --text-3: rgba(232,237,248,0.3);
+  --text-4: rgba(232,237,248,0.15);
+}
+
+/* ─── BODY ─── */
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--c0);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.4s, color 0.4s;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── NOISE OVERLAY ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── UPLOAD SCREEN ─── */
+#upload-screen {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  z-index: 1;
+}
+
+.up-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 60px;
+}
+.up-logo em { font-style: normal; color: var(--accent); }
+
+.up-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 300;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--text);
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+.up-title em { font-style: italic; color: var(--accent2); }
+
+.up-sub {
+  font-size: 13px;
+  color: var(--text-3);
+  text-align: center;
+  margin-bottom: 52px;
+  letter-spacing: 0.5px;
+}
+
+.platform-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  width: 100%;
+  max-width: 580px;
+  margin-bottom: 32px;
+}
+
+.platform-card {
+  position: relative;
+  border-radius: var(--r);
+  padding: 28px 24px;
+  text-align: left;
+  border: 1px solid var(--text-4);
+  cursor: pointer;
+  transition: border-color 0.25s, background 0.25s, transform 0.2s;
+  background: var(--c1);
+  overflow: hidden;
+}
+.platform-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, var(--card-glow, transparent) 0%, transparent 70%);
+  pointer-events: none;
+}
+.platform-card.meta { --card-glow: rgba(201,160,82,0.07); }
+.platform-card.google { --card-glow: rgba(74,134,232,0.07); }
+.platform-card:hover { transform: translateY(-2px); }
+.platform-card.meta:hover { border-color: rgba(201,160,82,0.45); }
+.platform-card.google:hover { border-color: rgba(74,134,232,0.45); }
+.platform-card.drag-over { transform: scale(1.01); }
+.platform-card.meta.drag-over { border-color: #C9A052; background: rgba(201,160,82,0.06); }
+.platform-card.google.drag-over { border-color: #4A86E8; background: rgba(74,134,232,0.06); }
+
+.pc-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+.pc-dot.meta { background: #C9A052; }
+.pc-dot.google { background: #4A86E8; }
+
+.pc-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: -0.2px;
+}
+.pc-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.pc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.pc-badge.meta { background: rgba(201,160,82,0.1); color: var(--accent2); border: 1px solid rgba(201,160,82,0.2); }
+.pc-badge.google { background: rgba(74,134,232,0.1); color: #7BAAF7; border: 1px solid rgba(74,134,232,0.2); }
+.pc-badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+
+#file-meta, #file-google { display: none; }
+
+.error-msg {
+  display: none;
+  margin-top: 12px;
+  width: 100%;
+  max-width: 580px;
+  padding: 12px 16px;
+  border-radius: var(--r-sm);
+  background: rgba(192,96,96,0.08);
+  border: 1px solid rgba(192,96,96,0.25);
+  color: #D07070;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.up-hint {
+  margin-top: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-4);
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+/* ─── TOP ACTIONS ─── */
+.top-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  z-index: 100;
+  background: rgba(10,9,8,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--text-4);
+}
+.top-bar.visible { display: flex; }
+.g-theme .top-bar { background: rgba(8,12,18,0.85); }
+
+.bar-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.bar-logo em { font-style: normal; color: var(--accent); }
+
+.bar-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  padding: 7px 16px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.btn-ghost {
+  background: transparent;
+  border-color: var(--text-4);
+  color: var(--text-3);
+}
+.btn-ghost:hover { border-color: var(--text-3); color: var(--text-2); }
+.btn-accent {
+  background: var(--accent3);
+  border-color: var(--accent-border);
+  color: var(--accent2);
+}
+.btn-accent:hover { background: rgba(201,160,82,0.14); }
+.g-theme .btn-accent:hover { background: rgba(74,134,232,0.14); }
+
+/* ─── DASHBOARD ─── */
+#dashboard {
+  display: none;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 88px 40px 64px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── HEADER ─── */
+.dash-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 32px;
+  align-items: end;
+  margin-bottom: 72px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid var(--text-4);
+  position: relative;
+}
+.dash-header::before {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0;
+  width: 60px; height: 1px;
+  background: var(--accent);
+}
+
+.h-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.h-eyebrow::before {
+  content: '';
+  width: 20px; height: 1px;
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+#client-name-input {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 300;
+  font-style: italic;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  outline: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+  width: 100%;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+#client-name-input::placeholder { color: var(--text-4); font-style: italic; }
+#client-name-input:hover, #client-name-input:focus { border-bottom-color: var(--accent-border); }
+
+.edit-hint {
+  margin-top: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--text-4);
+  letter-spacing: 1px;
+}
+
+.h-right { text-align: right; }
+.h-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-4);
+  margin-bottom: 10px;
+}
+.period-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--c2);
+  border: 1px solid var(--text-4);
+  border-radius: var(--r-sm);
+  padding: 10px 16px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--text-2);
+}
+.period-pill::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.h-platform {
+  margin-top: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--text-4);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ─── SECTION LABELS ─── */
+.sec {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.sec-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  opacity: 0.7;
+}
+.sec-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+.sec-line { flex: 1; height: 1px; background: var(--text-4); }
+
+/* ─── KPI GRID ─── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 56px;
+}
+
+.kpi-card {
+  background: var(--c1);
+  border: 1px solid var(--text-4);
+  border-radius: var(--r);
+  padding: 28px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.kpi-card:hover { border-color: var(--text-3); }
+
+.kpi-card.primary {
+  background: var(--c2);
+  border-color: var(--accent-border);
+}
+.kpi-card.primary::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+}
+
+.kpi-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-4);
+  margin-bottom: 16px;
+  display: block;
+}
+.kpi-card.primary .kpi-tag { color: var(--accent); opacity: 0.7; }
+
+.kpi-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 44px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--text);
+  letter-spacing: -1px;
+}
+.kpi-card.primary .kpi-val { color: var(--accent2); }
+.kpi-unit {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text-3);
+  margin-right: 2px;
+}
+.kpi-sub {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-4);
+  font-weight: 400;
+}
+
+/* ─── METRICS ROW ─── */
+.metrics-row {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 56px;
+}
+.metric-pill {
+  background: var(--c2);
+  border: 1px solid var(--text-4);
+  border-radius: var(--r-sm);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.2s;
+}
+.metric-pill:hover { border-color: var(--text-3); }
+.mp-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+.mp-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1;
+}
+.mp-sub {
+  font-size: 10px;
+  color: var(--text-4);
+  font-weight: 400;
+}
+
+/* ─── CHARTS ─── */
+.charts-row {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 56px;
+}
+.chart-card {
+  background: var(--c1);
+  border: 1px solid var(--text-4);
+  border-radius: var(--r);
+  padding: 28px 24px;
+}
+.chart-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text-4);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.chart-label::before { content: '//'; color: var(--accent); opacity: 0.5; font-size: 10px; }
+
+/* ─── TABLE ─── */
+.data-section { margin-bottom: 56px; }
+.data-wrap {
+  background: var(--c1);
+  border: 1px solid var(--text-4);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-4);
+  font-weight: 400;
+  padding: 14px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--text-4);
+  background: var(--c2);
+}
+.data-table th:not(:first-child) { text-align: right; }
+.data-table td {
+  padding: 15px 20px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--text-4);
+  vertical-align: middle;
+  color: var(--text-2);
+}
+.data-table td:not(:first-child) { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--c2); color: var(--text); }
+.cell-name { font-weight: 600; color: var(--text); font-size: 13px; font-family: 'Syne', sans-serif; }
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.tag-green { background: rgba(77,158,114,0.1); color: var(--green); border: 1px solid rgba(77,158,114,0.25); }
+.tag-gold { background: var(--accent3); color: var(--accent2); border: 1px solid var(--accent-border); }
+.hi { color: var(--accent2); font-weight: 400; }
+.status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+}
+.status-dot::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-dot.active { color: var(--green); }
+.status-dot.active::before { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status-dot.paused { color: var(--accent); }
+.status-dot.paused::before { background: var(--accent); }
+.status-dot.inactive { color: var(--text-4); }
+.status-dot.inactive::before { background: var(--text-4); }
+
+.bar-wrap { display: flex; align-items: center; gap: 10px; }
+.bar-track { flex: 1; height: 2px; background: var(--c4); border-radius: 100px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 100px; background: var(--accent); }
+
+/* ─── INSIGHTS ─── */
+.insight-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 56px;
+}
+.insight-card {
+  background: var(--c1);
+  border: 1px solid var(--text-4);
+  border-radius: var(--r);
+  padding: 24px;
+  display: flex;
+  gap: 18px;
+  transition: border-color 0.2s;
+}
+.insight-card:hover { border-color: var(--text-3); }
+.ins-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--text-4);
+  line-height: 1;
+  flex-shrink: 0;
+  width: 32px;
+}
+.ins-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: -0.2px;
+  line-height: 1.4;
+}
+.ins-text { font-size: 12px; color: var(--text-3); line-height: 1.7; font-weight: 400; }
+
+/* ─── FOOTER ─── */
+.dash-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 32px;
+  border-top: 1px solid var(--text-4);
+}
+.footer-left {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text-4);
+}
+.footer-left strong { color: var(--accent2); font-weight: 400; font-style: italic; }
+.footer-right {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--text-4);
+  letter-spacing: 1px;
+}
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-box {
+  background: var(--c2);
+  border: 1px solid var(--accent-border);
+  border-radius: 16px;
+  padding: 36px;
+  max-width: 460px;
+  width: 90%;
+}
+.modal-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.modal-sub {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-bottom: 24px;
+  line-height: 1.7;
+}
+.modal-url {
+  background: var(--c0);
+  border: 1px solid var(--text-4);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-3);
+  word-break: break-all;
+  margin-bottom: 20px;
+  max-height: 80px;
+  overflow-y: auto;
+}
+.modal-actions { display: flex; gap: 10px; }
+.modal-copy {
+  flex: 1; padding: 12px;
+  border-radius: 100px;
+  background: var(--accent3);
+  border: 1px solid var(--accent-border);
+  color: var(--accent2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  letter-spacing: 0.5px;
+  transition: background 0.2s;
+}
+.modal-copy:hover { background: rgba(201,160,82,0.14); }
+.modal-close {
+  padding: 12px 20px;
+  border-radius: 100px;
+  background: transparent;
+  border: 1px solid var(--text-4);
+  color: var(--text-3);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  transition: border-color 0.2s;
+}
+.modal-close:hover { border-color: var(--text-3); }
+
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--c3);
+  border: 1px solid var(--accent-border);
+  border-radius: 100px;
+  padding: 10px 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent2);
+  z-index: 300;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  letter-spacing: 1px;
+}
+.toast.show { opacity: 1; }
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  #dashboard { padding: 72px 20px 48px; }
+  .platform-cards { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2,1fr); }
+  .insight-grid { grid-template-columns: 1fr; }
+  #client-name-input { font-size: 28px; }
+  .dash-header { grid-template-columns: 1fr; }
+  .h-right { text-align: left; }
+  .top-bar { padding: 0 20px; }
+  .bar-logo { display: none; }
+}
+
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  @page{margin:12mm 14mm;size:A4;}
+  #upload-screen,.top-bar{display:none!important;}
+  #dashboard{display:block!important;padding:0;max-width:100%;}
+  .kpi-grid{grid-template-columns:repeat(4,1fr)!important;break-inside:avoid;}
+  .charts-row,.data-section,.insight-grid{break-inside:avoid;}
+  .insight-grid{grid-template-columns:1fr 1fr!important;}
+  #client-name-input{border-bottom:none!important;}
+  body::before{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar" id="top-bar">
+  <div class="bar-logo"><em>M</em>andril</div>
+  <div class="bar-actions">
+    <button class="btn btn-ghost" onclick="resetDashboard()">← novo arquivo</button>
+    <button class="btn btn-ghost" onclick="window.print()">imprimir / PDF</button>
+    <button class="btn btn-accent" onclick="gerarLink()">gerar link</button>
+  </div>
+</div>
+
+<!-- UPLOAD SCREEN -->
+<div id="upload-screen">
+  <div class="up-logo"><em>M</em>andril · Performance</div>
+  <h1 class="up-title">Selecione a <em>plataforma</em></h1>
+  <p class="up-sub">arraste ou clique para carregar o arquivo exportado</p>
+
+  <div class="platform-cards">
+    <label class="platform-card meta" for="file-meta" id="drop-meta">
+      <input type="file" id="file-meta" accept=".csv,.CSV">
+      <span class="pc-dot meta"></span>
+      <p class="pc-title">Meta Ads</p>
+      <p class="pc-sub">Exportação CSV de Campanhas do Meta Ads Manager</p>
+      <span class="pc-badge meta">Selecionar CSV</span>
+    </label>
+
+    <label class="platform-card google" for="file-google" id="drop-google">
+      <input type="file" id="file-google" accept=".zip,.ZIP">
+      <span class="pc-dot google"></span>
+      <p class="pc-title">Google Ads</p>
+      <p class="pc-sub">Cards da Visão Geral exportados como CSV (ZIP)</p>
+      <span class="pc-badge google">Selecionar ZIP</span>
+    </label>
+  </div>
+
+  <div class="error-msg" id="error-msg"></div>
+  <p class="up-hint">os dados ficam apenas no seu navegador · sem upload para servidores</p>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="dash-header">
+    <div>
+      <div class="h-eyebrow" id="agency-tag">Relatório de Performance · Meta Ads</div>
+      <input type="text" id="client-name-input" placeholder="Nome do cliente" spellcheck="false">
+      <p class="edit-hint">// clique para editar o nome</p>
+    </div>
+    <div class="h-right">
+      <p class="h-label">Período analisado</p>
+      <div class="period-pill"><span id="period-text">—</span></div>
+      <p class="h-platform" id="platform-tag">Meta Ads · Campanhas</p>
+    </div>
+  </div>
+
+  <div class="sec"><span class="sec-num">01</span><span class="sec-label">Visão geral</span><span class="sec-line"></span></div>
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <div class="sec"><span class="sec-num">02</span><span class="sec-label">Métricas de entrega</span><span class="sec-line"></span></div>
+  <div class="metrics-row" id="metrics-row"></div>
+
+  <div class="sec"><span class="sec-num">03</span><span class="sec-label" id="chart-section-label">Análise por campanha</span><span class="sec-line"></span></div>
+  <div class="charts-row" id="charts-row"></div>
+
+  <div class="sec"><span class="sec-num">04</span><span class="sec-label" id="table-section-label">Campanhas</span><span class="sec-line"></span></div>
+  <div class="data-section" id="data-section"></div>
+
+  <div class="sec"><span class="sec-num">05</span><span class="sec-label">Insights</span><span class="sec-line"></span></div>
+  <div class="insight-grid" id="insight-grid"></div>
+
+  <div class="dash-footer">
+    <p class="footer-left">Produzido por <strong>Mandril</strong> · Comunicação & Tráfego Pago</p>
+    <p class="footer-right" id="footer-date">—</p>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="share-modal" style="display:none;" onclick="if(event.target===this)fecharModal()">
+  <div class="modal-box">
+    <p class="modal-title">Link do cliente</p>
+    <p class="modal-sub">Copie e envie este link. O cliente abre o dashboard já preenchido — sem precisar fazer upload de nada.</p>
+    <div class="modal-url" id="share-url-display"></div>
+    <div class="modal-actions">
+      <button class="modal-copy" id="modal-copy-btn" onclick="copiarLink()">Copiar link</button>
+      <button class="modal-close" onclick="fecharModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast">// link copiado</div>
+
+<script>
+/* ════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════ */
+let chartA=null,chartB=null,_payload=null,_platform=null;
+Chart.defaults.font.family="'Syne',sans-serif";
+
+const brl  = v=>(!isFinite(v)||isNaN(v))?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtN = v=>Math.round(v).toLocaleString('pt-BR');
+const fmtK = v=>v>=1e6?(v/1e6).toFixed(1).replace('.',',')+' M':v>=1000?(v/1000).toFixed(1).replace('.',',')+' K':Math.round(v).toLocaleString('pt-BR');
+const pctFmt= v=>(v*100).toFixed(1).replace('.',',')+' %';
+const parseBRL=s=>parseFloat((s+'').replace(/R\$\s*/,'').replace(/\./g,'').replace(',','.'))||0;
+const parsePct=s=>parseFloat((s+'').replace('%','').replace(',','.'))/100||0;
+const parseNum=s=>parseFloat((s+'').replace(/\./g,'').replace(',','.'))||0;
+
+const ALPHA_MUTED='rgba(240,235,227,0.35)';
+
+function parseCSV(text){
+  const lines=text.split(/\r?\n/);
+  if(!lines.length)return[];
+  const headers=splitLine(lines[0]);
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const line=lines[i].trim();if(!line)continue;
+    const vals=splitLine(line),obj={};
+    headers.forEach((h,j)=>{obj[h.trim()]=(vals[j]||'').trim();});
+    rows.push(obj);
+  }
+  return rows;
+}
+function splitLine(line){
+  const r=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(c===','&&!inQ){r.push(cur);cur='';}
+    else cur+=c;
+  }
+  r.push(cur);return r;
+}
+function col(row,kws){
+  const keys=Object.keys(row);
+  for(const kw of kws){const f=keys.find(k=>k.toLowerCase().includes(kw.toLowerCase()));if(f)return f;}
+  return null;
+}
+function showErr(msg){const el=document.getElementById('error-msg');el.textContent=msg;el.style.display='block';}
+function setTheme(platform){
+  _platform=platform;
+  document.body.classList.toggle('g-theme',platform==='google');
+}
+function resetDashboard(){
+  document.getElementById('upload-screen').style.display='flex';
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('top-bar').classList.remove('visible');
+  document.getElementById('error-msg').style.display='none';
+  document.getElementById('file-meta').value='';
+  document.getElementById('file-google').value='';
+  if(chartA){chartA.destroy();chartA=null;}
+  if(chartB){chartB.destroy();chartB=null;}
+  _payload=null;_platform=null;
+  document.body.classList.remove('g-theme');
+}
+
+/* ── DRAG & DROP ── */
+['meta','google'].forEach(p=>{
+  const box=document.getElementById('drop-'+p);
+  box.addEventListener('dragover',e=>{e.preventDefault();box.classList.add('drag-over');});
+  box.addEventListener('dragleave',()=>box.classList.remove('drag-over'));
+  box.addEventListener('drop',e=>{
+    e.preventDefault();box.classList.remove('drag-over');
+    const f=e.dataTransfer.files[0];
+    if(f)p==='meta'?readMeta(f):readGoogle(f);
+  });
+});
+document.getElementById('file-meta').addEventListener('change',e=>{if(e.target.files[0])readMeta(e.target.files[0]);});
+document.getElementById('file-google').addEventListener('change',e=>{if(e.target.files[0])readGoogle(e.target.files[0]);});
+
+/* ════════════════════════════════════════════════
+   META ADS
+════════════════════════════════════════════════ */
+function readMeta(file){
+  if(!file.name.match(/\.csv$/i)){showErr('Meta Ads: selecione um arquivo .csv');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{buildMeta(parseCSV(e.target.result),file.name);}
+    catch(err){showErr('Não foi possível ler o CSV. ('+err.message+')');}
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+function buildMeta(rows,filename){
+  if(!rows.length){showErr('CSV vazio.');return;}
+  const s=rows[0];
+  const C={
+    name:  col(s,['nome da campanha','campaign name']),
+    status:col(s,['veiculação','delivery','status']),
+    spend: col(s,['valor usado','amount spent','spend']),
+    results:col(s,['resultados','results']),
+    hook:  col(s,['hook rate']),
+    clicks:col(s,['cliques no link','link clicks']),
+    reach: col(s,['alcance','reach']),
+    imp:   col(s,['impressões','impressions']),
+    freq:  col(s,['frequência','frequency']),
+    cpc:   col(s,['cpc']),
+    start: col(s,['início','start']),
+    end:   col(s,['término','end']),
+  };
+  if(!C.spend){showErr('Colunas não reconhecidas. Use exportação de Campanhas do Meta Ads Manager.');return;}
+
+  const n=v=>parseFloat((v||'0').toString().replace(',','.'))||0;
+  const active=rows.filter(r=>n(r[C.spend])>0);
+  if(!active.length){showErr('Nenhuma campanha com investimento.');return;}
+
+  const totalSpend  =active.reduce((s,r)=>s+n(r[C.spend]),0);
+  const totalResults=active.reduce((s,r)=>s+n(r[C.results]),0);
+  const totalReach  =active.reduce((s,r)=>s+n(r[C.reach]),0);
+  const totalImp    =active.reduce((s,r)=>s+n(r[C.imp]),0);
+  const totalClicks =active.reduce((s,r)=>s+n(r[C.clicks]),0);
+  const cpr=totalResults>0?totalSpend/totalResults:0;
+  const cpc=totalClicks>0?totalSpend/totalClicks:0;
+  const cpm=totalImp>0?(totalSpend/totalImp)*1000:0;
+  const freq=totalReach>0?totalImp/totalReach:0;
+  const hooks=active.map(r=>n(r[C.hook])).filter(v=>v>0);
+  const hookAvg=hooks.length?hooks.reduce((a,b)=>a+b,0)/hooks.length:0;
+
+  const withRes=[...rows].filter(r=>n(r[C.results])>0).sort((a,b)=>n(b[C.results])-n(a[C.results]));
+  const bestRow=withRes.reduce((best,r)=>{const c=n(r[C.spend])/n(r[C.results]);return(!best||c<best.cpr)?{row:r,cpr:c}:best;},null);
+
+  const period=parsePeriodDates(rows,C.start,C.end);
+  const clientName=guessClientMeta(filename);
+
+  function statusInfo(raw){
+    const r=(raw||'').toLowerCase();
+    if(r==='active')return{t:'Ativa',c:'active'};
+    if(r.includes('not_delivering')||r.includes('paused'))return{t:'Pausada',c:'paused'};
+    return{t:'Inativa',c:'inactive'};
+  }
+  function cleanName(s){return(s||'').replace(/^[🟢🔴🟡⚪️\s]+/u,'').replace(/\[|\]/g,'').trim();}
+
+  const campaigns=[...rows].sort((a,b)=>n(b[C.results])-n(a[C.results])).map(r=>{
+    const sp=n(r[C.spend]),res=n(r[C.results]);
+    const st=statusInfo(r[C.status]);
+    return{name:cleanName(r[C.name]||'—'),statusTxt:st.t,statusCls:st.c,
+           spend:sp,results:res,cpr:res>0?sp/res:null,
+           reach:n(r[C.reach]),clicks:n(r[C.clicks]),isBest:bestRow&&r===bestRow.row};
+  });
+
+  const ins=[];
+  if(bestRow){const nm=cleanName(bestRow.row[C.name]||'');ins.push({title:`${nm} é a campanha mais eficiente`,text:`Gerou o menor custo por resultado: R$ ${brl(bestRow.cpr)}. Alocar mais orçamento neste formato pode escalar os resultados sem aumentar proporcionalmente o custo.`});}
+  if(totalResults>0)ins.push({title:`${fmtN(totalResults)} resultados com ${active.length} campanha${active.length>1?'s':''} ativa${active.length>1?'s':''}`,text:`Cada R$ ${brl(cpr)} gerou um resultado direto. O alcance de ${fmtK(totalReach)} pessoas únicas mostra uma audiência saudável sendo trabalhada no período.`});
+  if(freq>=3.5)ins.push({title:'Frequência elevada — atenção à fadiga criativa',text:`Frequência de ${freq.toFixed(2).replace('.',',')}× indica que cada pessoa viu o anúncio mais de 3 vezes. Considere renovar criativos ou expandir o público.`});
+  else if(freq>0)ins.push({title:`Frequência de ${freq.toFixed(2).replace('.',',')}× — entrega equilibrada`,text:`O público está sendo impactado de forma consistente sem sinais de saturação. CPM de R$ ${brl(cpm)} indica boa eficiência na entrega.`});
+  ins.push({title:'Custo por resultado dentro de patamar competitivo',text:`R$ ${brl(cpr)} por resultado com CPC de R$ ${brl(cpc)}. O investimento de R$ ${brl(totalSpend)} gerou ${fmtN(totalClicks)} cliques e ${fmtN(totalResults)} conversões diretas.`});
+
+  _payload={platform:'meta',clientName,period,
+    totalSpend,totalResults,totalReach,totalImp,totalClicks,cpr,cpc,cpm,freq,hookAvg,
+    campaigns,insights:ins.slice(0,4)};
+  setTheme('meta');
+  renderMeta(_payload);
+}
+
+function renderMeta(p){
+  setHeader('Relatório de Performance · Meta Ads','Meta Ads · Campanhas',p.clientName,p.period);
+  const COLORS=['#C9A052','#7A9EC0','#9E7ABF','#4D9E72','#BF7A7A','#7ABFA0','#888'];
+
+  document.getElementById('kpi-grid').innerHTML=`
+    <div class="kpi-card primary">
+      <span class="kpi-tag">Resultados</span>
+      <div class="kpi-val">${fmtN(p.totalResults)}</div>
+      <p class="kpi-sub">conversas iniciadas</p>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-tag">Custo por resultado</span>
+      <div class="kpi-val"><span class="kpi-unit">R$</span>${brl(p.cpr)}</div>
+      <p class="kpi-sub">por resultado gerado</p>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-tag">Investimento total</span>
+      <div class="kpi-val"><span class="kpi-unit">R$</span>${brl(p.totalSpend)}</div>
+      <p class="kpi-sub">valor aplicado no período</p>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-tag">Alcance</span>
+      <div class="kpi-val">${fmtK(p.totalReach)}</div>
+      <p class="kpi-sub">pessoas únicas</p>
+    </div>`;
+
+  const mr=document.getElementById('metrics-row');
+  mr.style.gridTemplateColumns='repeat(6,1fr)';
+  mr.innerHTML=`
+    <div class="metric-pill"><p class="mp-label">Impressões</p><p class="mp-val">${fmtK(p.totalImp)}</p><p class="mp-sub">exibições totais</p></div>
+    <div class="metric-pill"><p class="mp-label">Frequência</p><p class="mp-val">${p.freq.toFixed(2).replace('.',',')}×</p><p class="mp-sub">por usuário</p></div>
+    <div class="metric-pill"><p class="mp-label">CPM</p><p class="mp-val">R$ ${brl(p.cpm)}</p><p class="mp-sub">por mil impressões</p></div>
+    <div class="metric-pill"><p class="mp-label">Cliques no link</p><p class="mp-val">${fmtN(p.totalClicks)}</p><p class="mp-sub">acessos gerados</p></div>
+    <div class="metric-pill"><p class="mp-label">CPC</p><p class="mp-val">R$ ${brl(p.cpc)}</p><p class="mp-sub">por clique</p></div>
+    <div class="metric-pill"><p class="mp-label">Hook Rate</p><p class="mp-val">${p.hookAvg>0?pctFmt(p.hookAvg):'—'}</p><p class="mp-sub">vídeos — média</p></div>`;
+
+  const topRows=p.campaigns.filter(r=>r.results>0).slice(0,6);
+  const labels=topRows.map(r=>r.name.length>22?r.name.substring(0,20)+'…':r.name);
+  const dRes=topRows.map(r=>r.results),dSpend=topRows.map(r=>r.spend);
+  const bColors=topRows.map((_,i)=>COLORS[i%COLORS.length]);
+
+  document.getElementById('charts-row').style.gridTemplateColumns='1.4fr 0.6fr';
+  document.getElementById('charts-row').innerHTML=`
+    <div class="chart-card">
+      <p class="chart-label">Resultados × Investimento</p>
+      <div style="position:relative;height:240px;"><canvas id="chartA"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <p class="chart-label">Distribuição</p>
+      <div style="display:flex;justify-content:center;margin-bottom:16px;">
+        <div style="position:relative;height:160px;width:160px;"><canvas id="chartB"></canvas></div>
+      </div>
+      <div id="dough-legend" style="display:flex;flex-direction:column;gap:7px;"></div>
+    </div>`;
+
+  if(chartA)chartA.destroy();
+  chartA=new Chart(document.getElementById('chartA').getContext('2d'),{
+    data:{labels,datasets:[
+      {type:'bar',data:dRes,backgroundColor:bColors.map(c=>c+'CC'),borderColor:bColors,borderWidth:1,borderRadius:4,borderSkipped:false,yAxisID:'y'},
+      {type:'bar',data:dSpend,backgroundColor:'rgba(255,255,255,0.03)',borderColor:'rgba(255,255,255,0.08)',borderWidth:1,borderRadius:4,borderSkipped:false,yAxisID:'y2'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1F1D1C',borderColor:'rgba(201,160,82,0.2)',borderWidth:1,titleColor:'#F0EBE3',bodyColor:'rgba(240,235,227,0.6)',padding:12,cornerRadius:6,
+        callbacks:{label:ctx=>ctx.datasetIndex===0?'  Resultados: '+ctx.raw:'  Investido: R$ '+brl(ctx.raw)}}},
+      scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},border:{color:'rgba(255,255,255,0.06)'},ticks:{color:ALPHA_MUTED,font:{size:10},maxRotation:30}},
+        y:{position:'left',grid:{color:'rgba(255,255,255,0.03)'},border:{display:false},ticks:{color:ALPHA_MUTED,font:{size:10}}},
+        y2:{position:'right',grid:{display:false},border:{display:false},ticks:{color:ALPHA_MUTED,font:{size:10},callback:v=>'R$'+v}}}}
+  });
+  if(chartB)chartB.destroy();
+  chartB=new Chart(document.getElementById('chartB').getContext('2d'),{
+    type:'doughnut',data:{labels,datasets:[{data:dRes,backgroundColor:bColors.map(c=>c+'BB'),borderColor:bColors,borderWidth:1}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'72%',
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1F1D1C',borderColor:'rgba(201,160,82,0.2)',borderWidth:1,titleColor:'#F0EBE3',bodyColor:'rgba(240,235,227,0.6)',padding:10,cornerRadius:6,
+        callbacks:{label:ctx=>'  '+ctx.label+': '+ctx.raw}}}}
+  });
+  const legend=document.getElementById('dough-legend');
+  legend.innerHTML='';
+  const tot=dRes.reduce((a,b)=>a+b,0);
+  topRows.forEach((_,i)=>{
+    const pct2=tot>0?((dRes[i]/tot)*100).toFixed(1):'0';
+    const d=document.createElement('div');
+    d.style.cssText='display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text-3);font-family:"JetBrains Mono",monospace;';
+    d.innerHTML=`<span style="width:8px;height:8px;border-radius:2px;background:${bColors[i]};display:inline-block;flex-shrink:0;"></span><span>${labels[i]} — ${pct2}%</span>`;
+    legend.appendChild(d);
+  });
+
+  document.getElementById('table-section-label').textContent='Campanhas';
+  const ds=document.getElementById('data-section');
+  ds.innerHTML='<div class="data-wrap"><table class="data-table"><thead><tr><th>Campanha</th><th>Status</th><th>Investido</th><th>Resultados</th><th>Custo / resultado</th><th>Alcance</th><th>Cliques</th></tr></thead><tbody id="data-tbody"></tbody></table></div>';
+  const tbody=document.getElementById('data-tbody');
+  p.campaigns.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><span class="cell-name">${r.name}</span>${r.isBest?'<span class="tag tag-green">melhor CPR</span>':''}</td>
+      <td><span class="status-dot ${r.statusCls}">${r.statusTxt}</span></td>
+      <td>${r.spend>0?'R$ '+brl(r.spend):'—'}</td>
+      <td>${r.results>0?'<span class="'+(r.isBest?'hi':'')+'">'+fmtN(r.results)+'</span>':'—'}</td>
+      <td>${r.cpr!==null?'<span class="'+(r.isBest?'hi':'')+'">R$ '+brl(r.cpr)+'</span>':'—'}</td>
+      <td>${r.reach>0?fmtN(r.reach):'—'}</td>
+      <td>${r.clicks>0?fmtN(r.clicks):'—'}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  renderInsights(p.insights);
+  showDashboard();
+}
+
+/* ════════════════════════════════════════════════
+   GOOGLE ADS
+════════════════════════════════════════════════ */
+async function readGoogle(file){
+  if(!file.name.match(/\.zip$/i)){showErr('Google Ads: selecione o arquivo .zip exportado.');return;}
+  try{
+    const zip=await JSZip.loadAsync(file);
+    const files={};const promises=[];
+    zip.forEach((path,entry)=>{
+      if(entry.dir||!path.endsWith('.csv'))return;
+      const name=path.split('/').pop().toLowerCase();
+      promises.push(entry.async('string').then(text=>{files[name]=text;}));
+    });
+    await Promise.all(promises);
+    buildGoogle(files,file.name);
+  }catch(e){showErr('Erro ao ler o ZIP: '+e.message);}
+}
+
+function buildGoogle(files,zipName){
+  const findF=kw=>Object.keys(files).find(k=>k.includes(kw));
+  const fCamp =findF('campanhas');
+  const fSerie=findF('rie_temporal')||findF('serie_temporal');
+  const fDev  =findF('dispositivos');
+  const fAlter=findF('maiores_altera');
+  const fKw   =findF('palavras-chave_de_pesquisa');
+  if(!fCamp&&!fSerie){showErr('Arquivos não reconhecidos no ZIP. Exporte via Google Ads → Relatórios → Cards da Visão Geral → CSV.');return;}
+
+  const camps=fCamp?parseCSV(files[fCamp]):[];
+  let totalSpend=0,totalClicks=0,totalCTR=0;
+  let spendFromCamps=false;
+  if(camps.length){
+    const kS=Object.keys(camps[0]);
+    const kCost=kS.find(k=>k.toLowerCase().includes('custo')&&!k.toLowerCase().includes('conv'));
+    const kClick=kS.find(k=>k.toLowerCase().includes('cliques'));
+    const kCTR=kS.find(k=>k.toLowerCase()==='ctr');
+    camps.forEach(r=>{totalSpend+=parseBRL(r[kCost]);totalClicks+=parseNum(r[kClick]);});
+    if(kCTR&&camps[0])totalCTR=parsePct(camps[0][kCTR]);
+    if(totalSpend>0)spendFromCamps=true;
+  }
+
+  const serie=fSerie?parseCSV(files[fSerie]):[];
+  let totalConv=0,activeDays=0;
+  const dailyLabels=[],dailyCost=[],dailyConv=[];
+  if(serie.length){
+    const kS=Object.keys(serie[0]);
+    const kCost=kS.find(k=>k.toLowerCase().includes('custo')&&!k.toLowerCase().includes('conv'));
+    const kConv=kS.find(k=>k.toLowerCase().includes('convers'));
+    const kDate=kS.find(k=>k.toLowerCase().includes('data'));
+    const months={jan:'01',fev:'02',mar:'03',abr:'04',mai:'05',jun:'06',jul:'07',ago:'08',set:'09',out:'10',nov:'11',dez:'12'};
+    let serieSpend=0;
+    serie.forEach(r=>{
+      const cost=parseBRL(r[kCost]),conv=parseNum(r[kConv]);
+      totalConv+=conv;if(cost>0)activeDays++;
+      serieSpend+=cost;
+      const raw=(r[kDate]||'').replace(/["]/g,'');
+      const m=raw.match(/(\d+)\s+de\s+(\w+)/i);
+      let label=raw;
+      if(m){const mon=months[m[2].substring(0,3).toLowerCase()]||'??';label=m[1].padStart(2,'0')+'/'+mon;}
+      dailyLabels.push(label);dailyCost.push(+cost.toFixed(2));dailyConv.push(conv);
+    });
+    if(!spendFromCamps)totalSpend=serieSpend;
+  }
+
+  let totalImp=0;
+  if(fDev){const devs=parseCSV(files[fDev]);if(devs.length){const kI=Object.keys(devs[0]).find(k=>k.toLowerCase().includes('impres'));devs.forEach(r=>{totalImp+=parseNum(r[kI]);});}}
+
+  let groupData=[];
+  if(fAlter){
+    const alt=parseCSV(files[fAlter]);
+    if(alt.length){
+      const ak=Object.keys(alt[0]);
+      const kG=ak.find(k=>k.toLowerCase().includes('grupo'));
+      const kC=ak.find(k=>k.toLowerCase()==='custo'||k.toLowerCase()==='custo ');
+      const kCl=ak.find(k=>k.toLowerCase()==='cliques');
+      groupData=alt.map(r=>({name:(r[kG]||'—').replace(/\[|\]/g,'').trim(),spend:parseBRL(r[kC]),clicks:parseNum(r[kCl])})).sort((a,b)=>b.spend-a.spend).slice(0,6);
+    }
+  }
+
+  let kwData=[];
+  if(fKw){
+    const kws=parseCSV(files[fKw]);
+    if(kws.length){
+      const kk=Object.keys(kws[0]);
+      const kW=kk.find(k=>k.toLowerCase().includes('palavra'));
+      const kC=kk.find(k=>k.toLowerCase().includes('custo'));
+      const kCl=kk.find(k=>k.toLowerCase().includes('cliques'));
+      const kCTR=kk.find(k=>k.toLowerCase()==='ctr');
+      kwData=kws.map(r=>({word:r[kW]||'—',spend:parseBRL(r[kC]),clicks:parseNum(r[kCl]),ctr:parsePct(r[kCTR])})).sort((a,b)=>b.spend-a.spend);
+    }
+  }
+
+  const cpl=totalConv>0?totalSpend/totalConv:0;
+  const cpc=totalClicks>0?totalSpend/totalClicks:0;
+  const cvr=totalClicks>0?totalConv/totalClicks:0;
+  if(!totalCTR&&totalImp>0)totalCTR=totalClicks/totalImp;
+
+  const period=extractPeriodFromZip(zipName)||'—';
+  const clientName=guessClientGoogle(zipName);
+
+  const ins=[];
+  const bestKw=kwData[0];
+  if(bestKw)ins.push({title:`"${bestKw.word}" é a palavra de maior investimento`,text:`Concentrou R$ ${brl(bestKw.spend)} com CTR de ${pctFmt(bestKw.ctr)}. Monitorar seu desempenho é essencial para o retorno da campanha.`});
+  if(totalConv>0)ins.push({title:`${fmtN(totalConv)} conversões em ${activeDays} dias ativos`,text:`Custo por conversão de R$ ${brl(cpl)}. A taxa de conversão de ${pctFmt(cvr)} mostra a qualidade do tráfego capturado.`});
+  if(totalCTR>0.08)ins.push({title:`CTR de ${pctFmt(totalCTR)} — excelente relevância`,text:`Uma taxa de cliques acima de 8% na rede de pesquisa indica alta relevância entre os anúncios e as buscas do público-alvo.`});
+  else if(totalCTR>0)ins.push({title:`CTR de ${pctFmt(totalCTR)} — boa visibilidade`,text:`A campanha está sendo exibida para ${fmtK(totalImp)} buscas com CPC médio de R$ ${brl(cpc)}. Otimizar títulos dos anúncios pode aumentar o CTR.`});
+  ins.push({title:'Rede de Pesquisa capturando demanda ativa',text:`Usuários que buscam serviços específicos têm alta intenção de contratação. Com ${fmtN(totalClicks)} cliques e R$ ${brl(totalSpend)} investidos, o canal está performando de forma sólida.`});
+
+  _payload={platform:'google',clientName,period,
+    totalSpend,totalConv,totalClicks,totalImp,cpl,cpc,cvr,ctr:totalCTR,activeDays,
+    dailyLabels,dailyCost,dailyConv,groupData,kwData,insights:ins.slice(0,4)};
+  setTheme('google');
+  renderGoogle(_payload);
+}
+
+function renderGoogle(p){
+  setHeader('Relatório de Performance · Google Ads','Google Ads · Rede de Pesquisa',p.clientName,p.period);
+
+  document.getElementById('kpi-grid').innerHTML=`
+    <div class="kpi-card primary">
+      <span class="kpi-tag">Conversões</span>
+      <div class="kpi-val">${fmtN(p.totalConv)}</div>
+      <p class="kpi-sub">leads / ações geradas</p>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-tag">Custo por conversão</span>
+      <div class="kpi-val"><span class="kpi-unit">R$</span>${brl(p.cpl)}</div>
+      <p class="kpi-sub">por lead gerado</p>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-tag">Investimento total</span>
+      <div class="kpi-val"><span class="kpi-unit">R$</span>${brl(p.totalSpend)}</div>
+      <p class="kpi-sub">valor aplicado no período</p>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-tag">Cliques</span>
+      <div class="kpi-val">${fmtN(p.totalClicks)}</div>
+      <p class="kpi-sub">acessos gerados</p>
+    </div>`;
+
+  const mr=document.getElementById('metrics-row');
+  mr.style.gridTemplateColumns='repeat(5,1fr)';
+  mr.innerHTML=`
+    <div class="metric-pill"><p class="mp-label">Impressões</p><p class="mp-val">${fmtK(p.totalImp)}</p><p class="mp-sub">buscas exibidas</p></div>
+    <div class="metric-pill"><p class="mp-label">CTR</p><p class="mp-val">${pctFmt(p.ctr)}</p><p class="mp-sub">taxa de cliques</p></div>
+    <div class="metric-pill"><p class="mp-label">CPC médio</p><p class="mp-val">R$ ${brl(p.cpc)}</p><p class="mp-sub">por clique</p></div>
+    <div class="metric-pill"><p class="mp-label">Taxa de conv.</p><p class="mp-val">${pctFmt(p.cvr)}</p><p class="mp-sub">cliques → lead</p></div>
+    <div class="metric-pill"><p class="mp-label">Dias ativos</p><p class="mp-val">${p.activeDays}</p><p class="mp-sub">com investimento</p></div>`;
+
+  document.getElementById('chart-section-label').textContent='Performance no período';
+  document.getElementById('charts-row').style.gridTemplateColumns='1.6fr 1fr';
+  document.getElementById('charts-row').innerHTML=`
+    <div class="chart-card">
+      <p class="chart-label">Custo diário × Conversões</p>
+      <div style="position:relative;height:240px;"><canvas id="chartA"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <p class="chart-label">Top grupos de anúncios</p>
+      <div style="position:relative;height:240px;"><canvas id="chartB"></canvas></div>
+    </div>`;
+
+  const gMuted='rgba(232,237,248,0.35)';
+  if(chartA)chartA.destroy();
+  chartA=new Chart(document.getElementById('chartA').getContext('2d'),{
+    data:{labels:p.dailyLabels,datasets:[
+      {type:'bar',data:p.dailyCost,backgroundColor:'rgba(74,134,232,0.2)',borderColor:'rgba(74,134,232,0.45)',borderWidth:1,borderRadius:3,yAxisID:'y'},
+      {type:'line',data:p.dailyConv,borderColor:'#4D9E72',backgroundColor:'rgba(77,158,114,0.08)',borderWidth:2,pointRadius:2.5,pointBackgroundColor:'#4D9E72',tension:0.35,yAxisID:'y2'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#171D29',borderColor:'rgba(74,134,232,0.2)',borderWidth:1,titleColor:'#E8EDF8',bodyColor:'rgba(232,237,248,0.6)',padding:12,cornerRadius:6,
+        callbacks:{label:ctx=>ctx.datasetIndex===0?'  Custo: R$ '+brl(ctx.raw):'  Conversões: '+ctx.raw}}},
+      scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},border:{color:'rgba(255,255,255,0.05)'},ticks:{color:gMuted,font:{size:10},maxTicksLimit:15}},
+        y:{position:'left',grid:{color:'rgba(255,255,255,0.03)'},border:{display:false},ticks:{color:gMuted,font:{size:10},callback:v=>'R$'+v}},
+        y2:{position:'right',grid:{display:false},border:{display:false},ticks:{color:gMuted,font:{size:10}}}}}
+  });
+
+  if(chartB)chartB.destroy();
+  if(p.groupData.length){
+    chartB=new Chart(document.getElementById('chartB').getContext('2d'),{
+      type:'bar',
+      data:{labels:p.groupData.map(g=>g.name.length>20?g.name.substring(0,18)+'…':g.name),
+            datasets:[{data:p.groupData.map(g=>+g.spend.toFixed(2)),backgroundColor:'rgba(74,134,232,0.35)',borderColor:'#4A86E8',borderWidth:1,borderRadius:3,borderSkipped:false}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'#171D29',borderColor:'rgba(74,134,232,0.2)',borderWidth:1,titleColor:'#E8EDF8',bodyColor:'rgba(232,237,248,0.6)',padding:12,cornerRadius:6,
+          callbacks:{label:ctx=>'  R$ '+brl(ctx.raw)}}},
+        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},border:{display:false},ticks:{color:gMuted,font:{size:10},callback:v=>'R$'+v}},
+          y:{grid:{display:false},border:{display:false},ticks:{color:gMuted,font:{size:10}}}}}
+    });
+  }
+
+  document.getElementById('table-section-label').textContent='Palavras-chave principais';
+  const ds=document.getElementById('data-section');
+  ds.innerHTML='<div class="data-wrap"><table class="data-table"><thead><tr><th>Palavra-chave</th><th>Investido</th><th>Cliques</th><th>CTR</th><th>Participação</th></tr></thead><tbody id="data-tbody"></tbody></table></div>';
+  const tbody=document.getElementById('data-tbody');
+  const maxS=p.kwData[0]?.spend||1;
+  p.kwData.forEach((kw,i)=>{
+    const pctBar=Math.round((kw.spend/maxS)*100);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><span class="cell-name">${kw.word}</span>${i===0?'<span class="tag tag-gold">top gasto</span>':''}</td>
+      <td><span class="${i<3?'hi':''}">${kw.spend>0?'R$ '+brl(kw.spend):'—'}</span></td>
+      <td>${kw.clicks>0?fmtN(kw.clicks):'—'}</td>
+      <td>${kw.ctr>0?pctFmt(kw.ctr):'—'}</td>
+      <td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:${pctBar}%"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-4);min-width:28px;text-align:right;">${pctBar}%</span></div></td>`;
+    tbody.appendChild(tr);
+  });
+
+  renderInsights(p.insights);
+  showDashboard();
+}
+
+/* ════════════════════════════════════════════════
+   SHARED UTILS
+════════════════════════════════════════════════ */
+function setHeader(agencyTag,platformTag,clientName,period){
+  document.getElementById('agency-tag').textContent=agencyTag;
+  document.getElementById('platform-tag').textContent=platformTag;
+  document.getElementById('client-name-input').value=clientName;
+  document.getElementById('period-text').textContent=period;
+  document.getElementById('footer-date').textContent=
+    new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'})+
+    ' · '+(agencyTag.includes('Google')?'Google Ads':'Meta Ads');
+}
+
+function renderInsights(ins){
+  const grid=document.getElementById('insight-grid');
+  grid.innerHTML='';
+  ins.forEach((item,i)=>{
+    const d=document.createElement('div');
+    d.className='insight-card';
+    d.innerHTML=`<div class="ins-num">0${i+1}</div><div><p class="ins-title">${item.title}</p><p class="ins-text">${item.text}</p></div>`;
+    grid.appendChild(d);
+  });
+}
+
+function showDashboard(){
+  document.getElementById('upload-screen').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  document.getElementById('top-bar').classList.add('visible');
+}
+
+document.getElementById('client-name-input').addEventListener('input',e=>{
+  if(_payload)_payload.clientName=e.target.value;
+});
+
+/* ── SHARE ── */
+async function gerarLink(){
+  if(!_payload){alert('Carregue um arquivo primeiro.');return;}
+  try{
+    const longUrl=window.location.origin+window.location.pathname+'#d='+LZString.compressToEncodedURIComponent(JSON.stringify(_payload));
+    const urlDisplay=document.getElementById('share-url-display');
+    const copyBtn=document.getElementById('modal-copy-btn');
+    urlDisplay.textContent='Gerando link…';
+    if(copyBtn)copyBtn.disabled=true;
+    document.getElementById('share-modal').style.display='flex';
+    window._shareUrl=longUrl;
+
+    const raw=(_payload.clientName||'relatorio').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const slug=raw.replace(/[^a-zA-Z0-9]/g,'').substring(0,20)||'relatorio';
+    const tryShorten=async(customSlug)=>{
+      const api='https://is.gd/create.php?format=json&url='+encodeURIComponent(longUrl)+(customSlug?'&shorturl='+encodeURIComponent(customSlug):'');
+      const res=await fetch(api);const data=await res.json();
+      if(data.shorturl)return data.shorturl;
+      throw new Error(data.errormessage||'Erro');
+    };
+    let short=null;
+    try{short=await tryShorten(slug);}catch(_){try{short=await tryShorten(null);}catch(e2){console.warn('is.gd falhou:',e2);}}
+    if(short){window._shareUrl=short;urlDisplay.textContent=short;}
+    else{urlDisplay.textContent=longUrl;}
+    if(copyBtn)copyBtn.disabled=false;
+  }catch(e){alert('Erro ao gerar link: '+e.message);}
+}
+function copiarLink(){
+  if(!window._shareUrl)return;
+  navigator.clipboard.writeText(window._shareUrl).then(()=>{
+    const t=document.getElementById('toast');t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2500);fecharModal();
+  }).catch(()=>prompt('Copie o link:',window._shareUrl));
+}
+function fecharModal(){document.getElementById('share-modal').style.display='none';}
+
+/* ── AUTO-LOAD FROM URL HASH ── */
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    const hash=window.location.hash;
+    if(!hash.startsWith('#d='))return;
+    try{
+      const p=JSON.parse(LZString.decompressFromEncodedURIComponent(hash.slice(3)));
+      if(!p)return;
+      setTheme(p.platform);
+      if(p.platform==='meta')renderMeta(p);
+      else renderGoogle(p);
+      document.getElementById('top-bar').querySelector('.btn-ghost').style.display='none';
+    }catch(e){console.warn('Hash inválido',e);}
+  },400);
+});
+
+/* ── UTILS ── */
+function parsePeriodDates(rows,cs,ce){
+  const fmt=d=>{const p=(d||'').split('-');if(p.length!==3)return d;const m=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];return parseInt(p[2])+' '+m[parseInt(p[1])-1]+' '+p[0];};
+  const starts=rows.map(r=>r[cs]).filter(Boolean);
+  const ends=rows.map(r=>r[ce]).filter(Boolean);
+  if(!starts.length)return'—';
+  return fmt(starts[0])+' — '+fmt(ends[ends.length-1]);
+}
+function extractPeriodFromZip(s){
+  const m=s.match(/(\d{4})[\.\-_](\d{2})[\.\-_](\d{2}).*?(\d{4})[\.\-_](\d{2})[\.\-_](\d{2})/);
+  if(!m)return null;
+  const months=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  return`${parseInt(m[3])} ${months[parseInt(m[2])-1]} ${m[1]} — ${parseInt(m[6])} ${months[parseInt(m[5])-1]} ${m[4]}`;
+}
+function guessClientMeta(s){
+  let n=s.replace(/\.csv$/i,'').replace(/CA\d+---?/i,'');
+  const cut=['-Campanhas','-campanhas','Campanhas','-1-de-','-Conjuntos','-Anuncios'];
+  for(const c of cut){const i=n.indexOf(c);if(i>0){n=n.substring(0,i);break;}}
+  return n.replace(/-/g,' ').trim().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ')||'Cliente';
+}
+function guessClientGoogle(s){
+  let n=s.replace(/\.zip$/i,'').replace(/Cards_da_Visa_o_geral_csv_/i,'').replace(/_csv_\d{4}-\d{2}-\d{2}.*/,'').replace(/_\d{4}-\d{2}-\d{2}.*/,'');
+  n=n.replace(/_/g,' ').trim();
+  if(!n||n.length<2)return'Cliente';
+  return n.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
+}
+</script>
+</body>
+</html>
