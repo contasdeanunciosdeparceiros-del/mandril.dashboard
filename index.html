@@ -1113,8 +1113,8 @@ function slimPayload(p) {
       tc:p.totalClicks, cr:r2(p.cpr),
       cc:r2(p.cpc), cm:r2(p.cpm),
       fr:r2(p.freq), hk:r2(p.hookAvg),
-      // campaigns as arrays: [name, statusCls, spend, results, cpr, reach, clicks, isBest]
-      ca:(p.campaigns||[]).map(c=>[
+      // campaigns as arrays: [name, statusCls, spend, results, cpr, reach, clicks, isBest] — top 25
+      ca:(p.campaigns||[]).slice(0,25).map(c=>[
         c.name, c.statusCls, r2(c.spend), c.results,
         c.cpr!=null?r2(c.cpr):0, c.reach, c.clicks, c.isBest?1:0
       ])
@@ -1206,7 +1206,9 @@ async function gerarLink(){
   document.getElementById('share-modal').style.display='flex';
   window._shareUrl=null;
 
-  const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(slimPayload(_payload)));
+  const pkg = { c: slimPayload(_payload) };
+  if (_payloadPrev) pkg.p = slimPayload(_payloadPrev);
+  const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(pkg));
   const hash = '#d='+compressed;
 
   const origin  = window.location.origin;
@@ -1314,12 +1316,20 @@ window.addEventListener('load',()=>{
       try{
         const raw=JSON.parse(LZString.decompressFromEncodedURIComponent(hash.slice(3)));
         if(!raw) return;
-        const p=expandPayload(raw);
+        // Support new combined format {c, p} and legacy single-payload format
+        const currRaw = raw.c || raw;
+        const prevRaw = raw.p || null;
+        const p=expandPayload(currRaw);
         _payload=p; setTheme(p.platform);
         showDashboard();
         if(p.platform==='meta') renderMeta('curr',p);
         else renderGoogle('curr',p);
         document.getElementById('top-actions').querySelector('.action-btn.alt').style.display='none';
+        if(prevRaw){
+          const pp=expandPayload(prevRaw);
+          _payloadPrev=pp;
+          renderPrevDashboardAndCompare();
+        }
       }catch(e){console.warn('Hash inválido',e);}
     }
   },400);
