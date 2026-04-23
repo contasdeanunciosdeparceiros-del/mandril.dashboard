@@ -1134,81 +1134,116 @@ function slimPayload(p) {
 }
 
 /* ══════════════════════════════════════════
-   SHARE LINK — JSONBlob + is.gd
+   SHARE LINK — JSONBlob + shorteners
 ══════════════════════════════════════════ */
 async function gerarLink(){
   if(!_payload){alert('Carregue um arquivo primeiro.');return;}
 
-  // Reset modal
   document.getElementById('base-url-section').style.display='none';
   document.getElementById('share-result-section').style.display='block';
   document.getElementById('share-url-display').textContent='Salvando dados…';
   document.getElementById('share-modal').style.display='flex';
   window._shareUrl=null;
 
+  // Base URL
+  const origin  = window.location.origin;
+  const isLocal = !origin||origin==='null'||origin.startsWith('file://');
+  let baseUrl   = isLocal ? localStorage.getItem('mandril_base_url') : origin+window.location.pathname;
+
+  if(isLocal && !baseUrl){
+    document.getElementById('share-result-section').style.display='none';
+    document.getElementById('base-url-section').style.display='block';
+    document.getElementById('base-url-input').value='';
+    // Store slim payload hash as pending
+    const slim=slimPayload(_payload);
+    window._pendingHash='#d='+LZString.compressToEncodedURIComponent(JSON.stringify(slim));
+    return;
+  }
+  baseUrl = (baseUrl||'').replace(/#.*$/,'');
+
+  // 1. Try JSONBlob to store data (avoids URL length issue)
   try{
-    // 1. Store full payload on JSONBlob
-    const resp = await fetch('https://jsonblob.com/api/jsonBlob',{
+    document.getElementById('share-url-display').textContent='Salvando dados…';
+    const slim=slimPayload(_payload);
+    const resp=await fetchWithTimeout('https://jsonblob.com/api/jsonBlob',{
       method:'POST',
       headers:{'Content-Type':'application/json','Accept':'application/json'},
-      body:JSON.stringify(slimPayload(_payload))
-    });
-    if(!resp.ok) throw new Error('JSONBlob status '+resp.status);
-    const blobUrl = resp.headers.get('Location'); // https://jsonblob.com/api/jsonBlob/ID
-    const blobId  = blobUrl.split('/').pop();
+      body:JSON.stringify(slim)
+    },8000);
 
-    // 2. Determine base URL
-    const origin  = window.location.origin;
-    const isLocal = !origin||origin==='null'||origin.startsWith('file://');
-
-    if(isLocal){
-      const saved = localStorage.getItem('mandril_base_url');
-      if(saved){
-        shortLink(saved.replace(/#.*$/,''), blobId);
-      } else {
-        // Ask for hosting URL
-        document.getElementById('share-result-section').style.display='none';
-        document.getElementById('base-url-section').style.display='block';
-        document.getElementById('base-url-input').value='';
-        window._pendingBlobId = blobId;
+    if(resp.ok){
+      const loc=resp.headers.get('Location');
+      if(loc){
+        const blobId=loc.split('/').pop();
+        const longUrl=baseUrl+'#blob='+blobId;
+        await encurtar(longUrl);
+        return;
       }
-    } else {
-      shortLink(origin+window.location.pathname, blobId);
     }
+  }catch(e){ /* JSONBlob failed, try next */ }
+
+  // 2. Fallback: compressed hash URL + shorten
+  try{
+    document.getElementById('share-url-display').textContent='Encurtando…';
+    const slim=slimPayload(_payload);
+    const longUrl=baseUrl+'#d='+LZString.compressToEncodedURIComponent(JSON.stringify(slim));
+    await encurtar(longUrl);
   }catch(e){
-    document.getElementById('share-url-display').textContent='Erro ao salvar dados: '+e.message;
+    document.getElementById('share-url-display').textContent='Erro ao gerar link. Tente novamente.';
   }
 }
 
+function fetchWithTimeout(url,opts,ms){
+  const ctrl=new AbortController();
+  const id=setTimeout(()=>ctrl.abort(),ms);
+  return fetch(url,{...opts,signal:ctrl.signal}).finally(()=>clearTimeout(id));
+}
+
+async function encurtar(longUrl){
+  window._shareUrl=longUrl;
+  document.getElementById('share-url-display').textContent='Encurtando…';
+
+  // Try is.gd
+  try{
+    const r=await fetchWithTimeout('https://is.gd/create.php?format=simple&url='+encodeURIComponent(longUrl),{},6000);
+    const t=(await r.text()).trim();
+    if(t.startsWith('https://')){
+      window._shareUrl=t;
+      document.getElementById('share-url-display').textContent=t;
+      return;
+    }
+  }catch(e){}
+
+  // Try shrtco.de
+  try{
+    const r=await fetchWithTimeout('https://api.shrtco.de/v2/shorten?url='+encodeURIComponent(longUrl),{},6000);
+    const j=await r.json();
+    if(j.ok&&j.result?.full_short_link){
+      window._shareUrl=j.result.full_short_link;
+      document.getElementById('share-url-display').textContent=j.result.full_short_link;
+      return;
+    }
+  }catch(e){}
+
+  // Last resort: show the URL as-is
+  document.getElementById('share-url-display').textContent=longUrl;
+}
+
 function confirmarBaseUrl(){
-  const base = document.getElementById('base-url-input').value.trim().replace(/#.*$/,'');
+  const base=document.getElementById('base-url-input').value.trim().replace(/#.*$/,'');
   if(!base||!base.startsWith('http')){
     document.getElementById('base-url-input').style.borderColor='rgba(224,82,82,0.6)';
     return;
   }
-  localStorage.setItem('mandril_base_url', base);
+  localStorage.setItem('mandril_base_url',base);
   document.getElementById('base-url-section').style.display='none';
   document.getElementById('share-result-section').style.display='block';
-  shortLink(base, window._pendingBlobId);
+  const longUrl=base+(window._pendingHash||'');
+  encurtar(longUrl);
 }
 
-function shortLink(base, blobId){
-  const longUrl = base+'#blob='+blobId;
-  document.getElementById('share-url-display').textContent='Encurtando…';
-  window._shareUrl = longUrl;
-
-  fetch('https://is.gd/create.php?format=simple&url='+encodeURIComponent(longUrl))
-    .then(r=>r.text())
-    .then(short=>{
-      short=short.trim();
-      if(short&&short.startsWith('https://')){
-        window._shareUrl=short;
-        document.getElementById('share-url-display').textContent=short;
-      } else {
-        document.getElementById('share-url-display').textContent=longUrl;
-      }
-    })
-    .catch(()=>{ document.getElementById('share-url-display').textContent=longUrl; });
+function shortLink(base,blobId){
+  encurtar(base+'#blob='+blobId);
 }
 function copiarLink(){
   if(!window._shareUrl)return;
