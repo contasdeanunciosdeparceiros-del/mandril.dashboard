@@ -1133,45 +1133,67 @@ function slimPayload(p) {
   }
 }
 
-function gerarLink(){
+/* ══════════════════════════════════════════
+   SHARE LINK — JSONBlob + is.gd
+══════════════════════════════════════════ */
+async function gerarLink(){
   if(!_payload){alert('Carregue um arquivo primeiro.');return;}
-  const slim = slimPayload(_payload);
-  const hash = '#d='+LZString.compressToEncodedURIComponent(JSON.stringify(slim));
 
-  const origin = window.location.origin;
-  const isLocal = !origin || origin==='null' || origin.startsWith('file://');
-
-  // Reset modal state
+  // Reset modal
   document.getElementById('base-url-section').style.display='none';
-  document.getElementById('share-result-section').style.display='none';
+  document.getElementById('share-result-section').style.display='block';
+  document.getElementById('share-url-display').textContent='Salvando dados…';
   document.getElementById('share-modal').style.display='flex';
+  window._shareUrl=null;
 
-  if(!isLocal){
-    // Hosted — use current URL directly
-    const longUrl = origin + window.location.pathname + hash;
-    gerarLinkFromUrl(longUrl);
-  } else {
-    // Local — ask for hosting URL (pre-fill from localStorage)
-    const saved = localStorage.getItem('mandril_base_url') || '';
-    document.getElementById('base-url-input').value = saved;
-    document.getElementById('base-url-section').style.display='block';
-    window._pendingHash = hash;
+  try{
+    // 1. Store full payload on JSONBlob
+    const resp = await fetch('https://jsonblob.com/api/jsonBlob',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify(slimPayload(_payload))
+    });
+    if(!resp.ok) throw new Error('JSONBlob status '+resp.status);
+    const blobUrl = resp.headers.get('Location'); // https://jsonblob.com/api/jsonBlob/ID
+    const blobId  = blobUrl.split('/').pop();
+
+    // 2. Determine base URL
+    const origin  = window.location.origin;
+    const isLocal = !origin||origin==='null'||origin.startsWith('file://');
+
+    if(isLocal){
+      const saved = localStorage.getItem('mandril_base_url');
+      if(saved){
+        shortLink(saved.replace(/#.*$/,''), blobId);
+      } else {
+        // Ask for hosting URL
+        document.getElementById('share-result-section').style.display='none';
+        document.getElementById('base-url-section').style.display='block';
+        document.getElementById('base-url-input').value='';
+        window._pendingBlobId = blobId;
+      }
+    } else {
+      shortLink(origin+window.location.pathname, blobId);
+    }
+  }catch(e){
+    document.getElementById('share-url-display').textContent='Erro ao salvar dados: '+e.message;
   }
 }
 
 function confirmarBaseUrl(){
   const base = document.getElementById('base-url-input').value.trim().replace(/#.*$/,'');
-  if(!base || !base.startsWith('http')){
+  if(!base||!base.startsWith('http')){
     document.getElementById('base-url-input').style.borderColor='rgba(224,82,82,0.6)';
     return;
   }
   localStorage.setItem('mandril_base_url', base);
   document.getElementById('base-url-section').style.display='none';
-  gerarLinkFromUrl(base + window._pendingHash);
+  document.getElementById('share-result-section').style.display='block';
+  shortLink(base, window._pendingBlobId);
 }
 
-function gerarLinkFromUrl(longUrl){
-  document.getElementById('share-result-section').style.display='block';
+function shortLink(base, blobId){
+  const longUrl = base+'#blob='+blobId;
   document.getElementById('share-url-display').textContent='Encurtando…';
   window._shareUrl = longUrl;
 
@@ -1201,19 +1223,38 @@ function fecharModal(){document.getElementById('share-modal').style.display='non
    AUTO-LOAD FROM URL HASH
 ══════════════════════════════════════════ */
 window.addEventListener('load',()=>{
-  setTimeout(()=>{
+  setTimeout(async ()=>{
     const hash=window.location.hash;
-    if(!hash.startsWith('#d='))return;
-    try{
-      const p=JSON.parse(LZString.decompressFromEncodedURIComponent(hash.slice(3)));
-      if(!p)return;
-      _payload=p;
-      setTheme(p.platform);
-      showDashboard();
-      if(p.platform==='meta') renderMeta('curr',p);
-      else renderGoogle('curr',p);
-      document.getElementById('top-actions').querySelector('.action-btn.alt').style.display='none';
-    }catch(e){console.warn('Hash inválido',e);}
+
+    if(hash.startsWith('#blob=')){
+      // Load from JSONBlob
+      const blobId=hash.slice(6);
+      try{
+        const resp=await fetch('https://jsonblob.com/api/jsonBlob/'+blobId,{
+          headers:{'Accept':'application/json'}
+        });
+        if(!resp.ok) throw new Error('blob not found');
+        const p=await resp.json();
+        if(!p) return;
+        _payload=p; setTheme(p.platform);
+        showDashboard();
+        if(p.platform==='meta') renderMeta('curr',p);
+        else renderGoogle('curr',p);
+        document.getElementById('top-actions').querySelector('.action-btn.alt').style.display='none';
+      }catch(e){console.warn('Erro ao carregar blob:',e);}
+
+    } else if(hash.startsWith('#d=')){
+      // Legacy compressed hash
+      try{
+        const p=JSON.parse(LZString.decompressFromEncodedURIComponent(hash.slice(3)));
+        if(!p) return;
+        _payload=p; setTheme(p.platform);
+        showDashboard();
+        if(p.platform==='meta') renderMeta('curr',p);
+        else renderGoogle('curr',p);
+        document.getElementById('top-actions').querySelector('.action-btn.alt').style.display='none';
+      }catch(e){console.warn('Hash inválido',e);}
+    }
   },400);
 });
 
