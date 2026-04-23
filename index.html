@@ -1092,7 +1092,7 @@ function slimPayload(p) {
       totalReach:p.totalReach,     totalImp:p.totalImp,
       totalClicks:p.totalClicks,   cpr:r2(p.cpr),
       cpc:r2(p.cpc), cpm:r2(p.cpm), freq:r2(p.freq), hookAvg:r2(p.hookAvg),
-      campaigns:(p.campaigns||[]).slice(0,10).map(c=>({
+      campaigns:(p.campaigns||[]).map(c=>({
         name:c.name, statusTxt:c.statusTxt, statusCls:c.statusCls,
         spend:r2(c.spend), results:c.results,
         cpr:c.cpr!=null?r2(c.cpr):null,
@@ -1110,7 +1110,7 @@ function slimPayload(p) {
       dailyCost:(p.dailyCost||[]).map(r2),
       dailyConv:p.dailyConv,
       groupData:(p.groupData||[]).map(g=>({name:g.name,spend:r2(g.spend)})),
-      kwData:(p.kwData||[]).slice(0,10).map(k=>({word:k.word,spend:r2(k.spend),clicks:k.clicks,ctr:r2(k.ctr)})),
+      kwData:(p.kwData||[]).map(k=>({word:k.word,spend:r2(k.spend),clicks:k.clicks,ctr:r2(k.ctr)})),
       insights:p.insights
     });
   }
