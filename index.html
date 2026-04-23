@@ -17,7 +17,6 @@
   --text:#F5F1EA;--text-muted:rgba(245,241,234,0.55);--text-dim:rgba(245,241,234,0.28);
   --green:#4CAF77;--radius:12px;--radius-sm:8px;
 }
-/* Google theme override */
 .platform-google{
   --accent:#4285F4;--accent-light:#7BAAF7;--accent-dim:rgba(66,133,244,0.13);--accent-border:rgba(66,133,244,0.3);
   --bg:#0A0D14;--surface:#141820;--surface-2:#1A1F2E;--surface-3:#202635;
@@ -47,23 +46,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .upload-hint-bottom{margin-top:20px;font-size:11px;color:var(--text-dim);letter-spacing:1px;text-align:center;}
 
 /* ── DASHBOARD ── */
-#dashboard{display:none;max-width:1200px;margin:0 auto;padding:48px 40px;}
+.dash-wrap{display:none;max-width:1200px;margin:0 auto;padding:48px 40px;}
 .header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:56px;padding-bottom:40px;border-bottom:0.5px solid var(--border);position:relative;}
 .header::after{content:'';position:absolute;bottom:-1px;left:0;width:80px;height:1px;background:var(--accent);}
 .logo-area{display:flex;flex-direction:column;gap:6px;}
 .agency-tag{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-weight:500;}
-#client-name-input{font-family:'Playfair Display',serif;font-size:38px;font-weight:700;background:transparent;border:none;color:var(--text);outline:none;border-bottom:1px solid transparent;transition:border-color 0.2s;width:100%;}
-#client-name-input:hover,#client-name-input:focus{border-bottom-color:var(--accent-border);}
+.client-name-inp{font-family:'Playfair Display',serif;font-size:38px;font-weight:700;background:transparent;border:none;color:var(--text);outline:none;border-bottom:1px solid transparent;transition:border-color 0.2s;width:100%;}
+.client-name-inp:hover,.client-name-inp:focus{border-bottom-color:var(--accent-border);}
+.client-name-inp[readonly]{pointer-events:none;}
 .edit-hint{font-size:10px;color:var(--text-dim);margin-top:2px;}
 .report-meta{text-align:right;flex-shrink:0;margin-left:24px;}
 .report-title-lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
 .period-badge{display:inline-flex;align-items:center;gap:8px;background:var(--accent-dim);border:0.5px solid var(--accent-border);border-radius:100px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--accent-light);}
 .period-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);display:inline-block;}
-.platform-tag{margin-top:10px;font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;}
-
+.platform-tag-el{margin-top:10px;font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;}
 .section-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--text-dim);margin-bottom:20px;display:flex;align-items:center;gap:12px;}
 .section-label::after{content:'';flex:1;height:0.5px;background:var(--border);}
-
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:48px;}
 .kpi-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:24px 20px;position:relative;overflow:hidden;}
 .kpi-card.featured{border-color:var(--accent-border);}
@@ -73,17 +71,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .kpi-card.featured .kpi-value{color:var(--accent-light);}
 .kpi-unit{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:400;color:var(--text-muted);}
 .kpi-sub{margin-top:8px;font-size:12px;color:var(--text-dim);}
-
 .metrics-row{display:grid;gap:12px;margin-bottom:48px;}
 .metric-pill{background:var(--surface-2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:16px;text-align:center;}
 .metric-pill-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;}
 .metric-pill-value{font-size:20px;font-weight:600;color:var(--text);}
 .metric-pill-sub{font-size:11px;color:var(--text-dim);margin-top:4px;}
-
 .charts-row{display:grid;gap:20px;margin-bottom:48px;}
 .chart-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:28px 24px;}
 .chart-title{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:24px;}
-
 .data-section{margin-bottom:48px;}
 .data-table{width:100%;border-collapse:collapse;}
 .data-table th{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);font-weight:400;padding:0 16px 16px;text-align:left;border-bottom:0.5px solid var(--border);}
@@ -103,17 +98,57 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .bar-wrap{display:flex;align-items:center;gap:8px;}
 .bar-track{flex:1;height:4px;background:var(--surface-3);border-radius:100px;overflow:hidden;}
 .bar-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--accent),var(--accent-light));}
-
 .insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:48px;}
 .insight-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:24px;display:flex;gap:16px;}
 .insight-icon{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--accent-dim);border:0.5px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
 .insight-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;}
 .insight-text{font-size:12px;color:var(--text-muted);line-height:1.6;}
-
-.footer{display:flex;align-items:center;justify-content:space-between;padding-top:32px;border-top:0.5px solid var(--border);}
+.footer-row{display:flex;align-items:center;justify-content:space-between;padding-top:32px;border-top:0.5px solid var(--border);}
 .footer-agency{font-size:11px;color:var(--text-dim);}
 .footer-agency strong{color:var(--accent-light);font-weight:500;}
-.footer-date{font-size:11px;color:var(--text-dim);}
+.footer-date-el{font-size:11px;color:var(--text-dim);}
+
+/* ── SEPARADOR ENTRE DASHBOARDS ── */
+.dash-divider{max-width:1200px;margin:0 auto;padding:0 40px;}
+.dash-divider-inner{border-top:0.5px solid var(--border);padding:40px 0 0;display:flex;align-items:center;gap:16px;}
+.dash-divider-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:100px;padding:8px 18px;font-size:12px;font-weight:500;color:var(--text-muted);}
+.dash-divider-badge .dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.25);display:inline-block;}
+.dash-divider-line{flex:1;height:0.5px;background:var(--border);}
+
+/* ── COMPARATIVO ── */
+.compare-wrap{max-width:1200px;margin:0 auto;padding:0 40px 60px;}
+.compare-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.compare-months-pills{display:flex;align-items:center;gap:10px;}
+.month-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:100px;font-size:12px;font-weight:500;}
+.month-pill.curr{background:var(--accent-dim);color:var(--accent-light);border:0.5px solid var(--accent-border);}
+.month-pill.curr .dot{background:var(--accent);}
+.month-pill.prev{background:rgba(255,255,255,0.05);color:var(--text-muted);border:0.5px solid var(--border);}
+.month-pill.prev .dot{background:rgba(255,255,255,0.3);}
+.month-pill .dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
+.vs-sep{font-size:13px;color:var(--text-dim);}
+.remove-cmp-btn{font-size:11px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:4px 10px;border-radius:6px;transition:color 0.2s;}
+.remove-cmp-btn:hover{color:var(--text-muted);}
+.cmp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+.cmp-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:22px 18px;position:relative;overflow:hidden;}
+.cmp-card.featured{border-color:var(--accent-border);}
+.cmp-card.featured::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);}
+.cmp-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:14px;font-weight:400;}
+.cmp-vals{display:flex;align-items:flex-end;gap:10px;justify-content:space-between;}
+.cmp-val-blk{flex:1;}
+.cmp-val-period{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px;}
+.cmp-val-num{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;line-height:1;}
+.cmp-val-num.is-curr{color:var(--accent-light);}
+.cmp-val-num.is-prev{color:var(--text-muted);}
+.cmp-divid{width:1px;background:var(--border);align-self:stretch;flex-shrink:0;}
+.cmp-delta-blk{text-align:center;min-width:58px;}
+.cmp-delta{display:inline-flex;align-items:center;gap:3px;padding:4px 10px;border-radius:100px;font-size:12px;font-weight:600;}
+.cmp-delta.good{background:rgba(76,175,119,0.12);color:#4CAF77;border:0.5px solid rgba(76,175,119,0.25);}
+.cmp-delta.bad{background:rgba(224,82,82,0.12);color:#E05252;border:0.5px solid rgba(224,82,82,0.25);}
+.cmp-delta.neutral{background:rgba(255,255,255,0.04);color:var(--text-dim);border:0.5px solid var(--border);}
+.cmp-delta-sub{font-size:9px;color:var(--text-dim);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;}
+.cmp-chart-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:28px 24px;}
+.cmp-section-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--text-dim);margin-bottom:20px;display:flex;align-items:center;gap:12px;}
+.cmp-section-label::after{content:'';flex:1;height:0.5px;background:var(--border);}
 
 /* top actions */
 .top-actions{position:fixed;top:20px;right:24px;z-index:100;display:none;gap:10px;}
@@ -134,66 +169,30 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--surface-2);border:0.5px solid var(--accent-border);border-radius:100px;padding:10px 24px;font-size:13px;color:var(--accent-light);z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;}
 .toast.show{opacity:1;}
 
+/* compare file modal */
+.cmp-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:flex;align-items:center;justify-content:center;}
+.cmp-modal-box{background:var(--surface-2);border:0.5px solid var(--accent-border);border-radius:16px;padding:32px;max-width:420px;width:90%;}
+.cmp-drop-label{border-radius:var(--radius);padding:28px 20px;text-align:center;border:1.5px dashed var(--accent-border);cursor:pointer;transition:background 0.2s;background:var(--surface);display:block;}
+.cmp-drop-label:hover{background:var(--accent-dim);}
+
 @media(max-width:900px){
-  #dashboard{padding:24px 20px;}
+  .dash-wrap{padding:24px 20px;}
+  .dash-divider{padding:0 20px;}
+  .compare-wrap{padding:0 20px 48px;}
   .platform-cards{grid-template-columns:1fr;}
   .kpi-grid{grid-template-columns:repeat(2,1fr);}
   .insight-grid{grid-template-columns:1fr;}
-  #client-name-input{font-size:26px;}
+  .client-name-inp{font-size:26px;}
   .header{flex-direction:column;gap:20px;}
   .report-meta{text-align:left;margin-left:0;}
-}
-
-/* ── COMPARATIVO ── */
-.compare-section{margin-bottom:48px;}
-.compare-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
-.compare-months-row{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-muted);}
-.month-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:100px;font-size:12px;font-weight:500;}
-.month-pill.curr{background:var(--accent-dim);color:var(--accent-light);border:0.5px solid var(--accent-border);}
-.month-pill.prev{background:rgba(255,255,255,0.05);color:var(--text-muted);border:0.5px solid var(--border);}
-.month-pill .dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
-.month-pill.curr .dot{background:var(--accent);}
-.month-pill.prev .dot{background:rgba(255,255,255,0.3);}
-.compare-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
-.cmp-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px 18px;position:relative;overflow:hidden;}
-.cmp-card.featured{border-color:var(--accent-border);}
-.cmp-card.featured::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);}
-.cmp-metric-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:14px;font-weight:400;}
-.cmp-values{display:flex;align-items:flex-end;gap:12px;justify-content:space-between;}
-.cmp-val-block{flex:1;}
-.cmp-val-period{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px;}
-.cmp-val-num{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1;}
-.cmp-val-num.is-curr{color:var(--accent-light);}
-.cmp-val-num.is-prev{color:var(--text-muted);}
-.cmp-divider{width:1px;background:var(--border);align-self:stretch;flex-shrink:0;}
-.cmp-delta-block{text-align:center;min-width:56px;}
-.cmp-delta{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:100px;font-size:12px;font-weight:600;}
-.cmp-delta.good{background:rgba(76,175,119,0.12);color:#4CAF77;border:0.5px solid rgba(76,175,119,0.25);}
-.cmp-delta.bad{background:rgba(224,82,82,0.12);color:#E05252;border:0.5px solid rgba(224,82,82,0.25);}
-.cmp-delta.neutral{background:rgba(255,255,255,0.04);color:var(--text-dim);border:0.5px solid var(--border);}
-.cmp-delta-sub{font-size:9px;color:var(--text-dim);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;}
-.compare-chart-wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
-.remove-compare-btn{font-size:11px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;transition:color 0.2s;}
-.remove-compare-btn:hover{color:var(--text-muted);}
-
-/* compare modal */
-.cmp-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:flex;align-items:center;justify-content:center;}
-.cmp-modal-box{background:var(--surface-2);border:0.5px solid var(--accent-border);border-radius:16px;padding:32px;max-width:420px;width:90%;}
-.cmp-drop{border-radius:var(--radius);padding:28px 20px;text-align:center;border:1.5px dashed var(--accent-border);cursor:pointer;transition:background 0.2s;background:var(--surface);display:block;}
-.cmp-drop:hover{background:var(--accent-dim);}
-.cmp-drop-title{font-size:14px;font-weight:600;color:var(--text);margin:10px 0 6px;}
-.cmp-drop-sub{font-size:12px;color:var(--text-muted);}
-
-@media(max-width:900px){
-  .compare-grid{grid-template-columns:repeat(2,1fr);}
-  .compare-chart-wrap{grid-template-columns:1fr;}
+  .cmp-grid{grid-template-columns:repeat(2,1fr);}
 }
 
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
   @page{margin:12mm 14mm;size:A4;}
   #upload-screen,.top-actions{display:none!important;}
-  #dashboard{display:block!important;padding:0;max-width:100%;}
+  .dash-wrap{display:block!important;padding:0;max-width:100%;}
   .kpi-grid{grid-template-columns:repeat(4,1fr)!important;break-inside:avoid;}
   .kpi-card{background:var(--surface)!important;border:1px solid rgba(255,255,255,0.12)!important;}
   .kpi-card.featured{border-color:var(--accent-border)!important;}
@@ -201,7 +200,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .data-section{break-inside:avoid;}
   .insight-grid{grid-template-columns:1fr 1fr!important;break-inside:avoid;}
   .insight-card,.chart-card,.metric-pill{background:var(--surface)!important;border:1px solid rgba(255,255,255,0.1)!important;}
-  #client-name-input{border-bottom:none!important;}
+  .client-name-inp{border-bottom:none!important;}
+  .cmp-grid{grid-template-columns:repeat(3,1fr)!important;break-inside:avoid;}
+  .cmp-card{background:var(--surface)!important;border:1px solid rgba(255,255,255,0.1)!important;}
+  .compare-wrap{padding:0!important;}
+  .dash-divider{padding:0!important;}
 }
 </style>
 </head>
@@ -209,17 +212,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <div class="top-actions" id="top-actions">
   <button class="action-btn alt" onclick="resetDashboard()">↑ Novo arquivo</button>
-  <button class="action-btn alt" onclick="abrirCompareModal()" id="btn-comparar">📊 Comparar meses</button>
+  <button class="action-btn alt" id="btn-comparar" onclick="abrirCompareModal()">📊 Comparar meses</button>
   <button class="action-btn" onclick="window.print()">Imprimir / PDF</button>
-  <button class="action-btn" style="font-weight:600;" onclick="gerarLink()">🔗 Gerar link do cliente</button>
+  <button class="action-btn" style="font-weight:600;" onclick="gerarLink()">🔗 Gerar link</button>
 </div>
 
 <!-- UPLOAD SCREEN -->
 <div id="upload-screen">
   <div class="upload-logo"><span class="m">M</span>andril<span class="g">·</span></div>
-
   <div class="platform-cards">
-    <!-- META -->
     <label class="platform-card meta" for="file-meta" id="drop-meta">
       <input type="file" id="file-meta" accept=".csv,.CSV">
       <span class="pc-icon">📊</span>
@@ -227,8 +228,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <p class="pc-sub">Exporte o CSV de Campanhas no Meta Ads Manager</p>
       <span class="pc-badge meta">Selecionar CSV</span>
     </label>
-
-    <!-- GOOGLE -->
     <label class="platform-card google" for="file-google" id="drop-google">
       <input type="file" id="file-google" accept=".zip,.ZIP">
       <span class="pc-icon">🔍</span>
@@ -237,72 +236,122 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <span class="pc-badge google">Selecionar ZIP</span>
     </label>
   </div>
-
   <div class="error-msg" id="error-msg"></div>
   <p class="upload-hint-bottom">ARRASTE O ARQUIVO EM CIMA DO CARD CORRESPONDENTE · OS DADOS FICAM APENAS NO SEU NAVEGADOR</p>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard">
+<!-- ═══════════════════════════
+     DASHBOARD MÊS ATUAL
+════════════════════════════ -->
+<div class="dash-wrap" id="dash-curr">
   <div class="header">
     <div class="logo-area">
-      <span class="agency-tag" id="agency-tag">Relatório de Performance · Meta Ads</span>
-      <input type="text" id="client-name-input" placeholder="Nome do cliente" spellcheck="false">
+      <span class="agency-tag" id="agency-tag-curr"></span>
+      <input type="text" class="client-name-inp" id="client-name-curr" placeholder="Nome do cliente" spellcheck="false">
       <p class="edit-hint">✏ clique no nome para editar</p>
     </div>
     <div class="report-meta">
       <p class="report-title-lbl">Período analisado</p>
-      <div class="period-badge"><span class="period-dot"></span><span id="period-text">—</span></div>
-      <p class="platform-tag" id="platform-tag">Meta Ads · Campanhas</p>
+      <div class="period-badge"><span class="period-dot"></span><span id="period-curr">—</span></div>
+      <p class="platform-tag-el" id="platform-tag-curr"></p>
     </div>
   </div>
-
   <p class="section-label">Visão geral</p>
-  <div class="kpi-grid" id="kpi-grid"></div>
-
+  <div class="kpi-grid" id="kpi-grid-curr"></div>
   <p class="section-label">Métricas de entrega</p>
-  <div class="metrics-row" id="metrics-row"></div>
-
-  <p class="section-label" id="chart-section-label">Análise por campanha</p>
-  <div class="charts-row" id="charts-row"></div>
-
-  <p class="section-label" id="table-section-label">Campanhas</p>
-  <div class="data-section" id="data-section"></div>
-
+  <div class="metrics-row" id="metrics-row-curr"></div>
+  <p class="section-label" id="chart-lbl-curr">Análise por campanha</p>
+  <div class="charts-row" id="charts-row-curr"></div>
+  <p class="section-label" id="table-lbl-curr">Campanhas</p>
+  <div class="data-section" id="data-section-curr"></div>
   <p class="section-label">Principais insights</p>
-  <div class="insight-grid" id="insight-grid"></div>
-
-  <!-- SEÇÃO DE COMPARATIVO -->
-  <div id="compare-section" style="display:none;">
-    <p class="section-label" style="margin-top:8px;">Comparativo de meses</p>
-    <div id="compare-month-tags" style="display:flex;align-items:center;gap:10px;margin-bottom:20px;justify-content:space-between;">
-      <div class="compare-months-row">
-        <span class="month-pill curr"><span class="dot"></span><span id="cmp-label-curr">Mês atual</span></span>
-        <span style="color:var(--text-dim);font-size:14px;">vs</span>
-        <span class="month-pill prev"><span class="dot"></span><span id="cmp-label-prev">Mês anterior</span></span>
-      </div>
-      <button class="remove-compare-btn" onclick="removerComparativo()">✕ remover comparativo</button>
-    </div>
-    <div class="compare-grid" id="compare-grid"></div>
-    <div class="compare-chart-wrap" id="compare-chart-wrap"></div>
-  </div>
-
-  <div class="footer">
+  <div class="insight-grid" id="insight-grid-curr"></div>
+  <div class="footer-row">
     <p class="footer-agency">Produzido por <strong>Mandril</strong> · Comunicação & Tráfego Pago</p>
-    <p class="footer-date" id="footer-date">—</p>
+    <p class="footer-date-el" id="footer-date-curr">—</p>
   </div>
 </div>
 
-<!-- COMPARE MODAL -->
+<!-- ═══════════════════════════
+     SEPARADOR
+════════════════════════════ -->
+<div class="dash-divider" id="dash-divider" style="display:none;">
+  <div class="dash-divider-inner">
+    <span class="dash-divider-badge"><span class="dot"></span>Mês anterior</span>
+    <div class="dash-divider-line"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════
+     DASHBOARD MÊS ANTERIOR
+════════════════════════════ -->
+<div class="dash-wrap" id="dash-prev" style="display:none;">
+  <div class="header">
+    <div class="logo-area">
+      <span class="agency-tag" id="agency-tag-prev"></span>
+      <input type="text" class="client-name-inp" id="client-name-prev" placeholder="Nome do cliente" spellcheck="false" readonly>
+      <p class="edit-hint" style="opacity:0;">·</p>
+    </div>
+    <div class="report-meta">
+      <p class="report-title-lbl">Período analisado</p>
+      <div class="period-badge"><span class="period-dot"></span><span id="period-prev">—</span></div>
+      <p class="platform-tag-el" id="platform-tag-prev"></p>
+    </div>
+  </div>
+  <p class="section-label">Visão geral</p>
+  <div class="kpi-grid" id="kpi-grid-prev"></div>
+  <p class="section-label">Métricas de entrega</p>
+  <div class="metrics-row" id="metrics-row-prev"></div>
+  <p class="section-label" id="chart-lbl-prev">Análise por campanha</p>
+  <div class="charts-row" id="charts-row-prev"></div>
+  <p class="section-label" id="table-lbl-prev">Campanhas</p>
+  <div class="data-section" id="data-section-prev"></div>
+  <p class="section-label">Principais insights</p>
+  <div class="insight-grid" id="insight-grid-prev"></div>
+  <div class="footer-row">
+    <p class="footer-agency">Produzido por <strong>Mandril</strong> · Comunicação & Tráfego Pago</p>
+    <p class="footer-date-el" id="footer-date-prev">—</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════
+     COMPARATIVO
+════════════════════════════ -->
+<div class="compare-wrap" id="compare-wrap" style="display:none;">
+  <!-- Separador visual -->
+  <div style="border-top:0.5px solid var(--border);padding-top:40px;margin-bottom:32px;display:flex;align-items:center;gap:16px;">
+    <span class="dash-divider-badge" style="border-color:var(--accent-border);background:var(--accent-dim);color:var(--accent-light);">📊 Comparativo de meses</span>
+    <div style="flex:1;height:0.5px;background:var(--border);"></div>
+    <button class="remove-cmp-btn" onclick="removerComparativo()">✕ remover comparativo</button>
+  </div>
+
+  <!-- Pills dos meses -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
+    <span class="month-pill curr"><span class="dot"></span><span id="cmp-label-curr">Mês atual</span></span>
+    <span class="vs-sep">vs</span>
+    <span class="month-pill prev"><span class="dot"></span><span id="cmp-label-prev">Mês anterior</span></span>
+  </div>
+
+  <p class="cmp-section-label">Métricas comparativas</p>
+  <div class="cmp-grid" id="cmp-grid"></div>
+
+  <p class="cmp-section-label" style="margin-top:8px;">Visão gráfica</p>
+  <div class="cmp-chart-card">
+    <p class="chart-title">Comparativo visual — métricas principais</p>
+    <div style="position:relative;height:300px;"><canvas id="chartCmp"></canvas></div>
+  </div>
+</div>
+
+<!-- COMPARE FILE MODAL -->
 <div class="cmp-modal-overlay" id="compare-modal" style="display:none;" onclick="if(event.target===this)fecharCompareModal()">
   <div class="cmp-modal-box">
     <p class="modal-title" style="margin-bottom:6px;">Comparar com outro mês</p>
-    <p class="modal-sub" style="margin-bottom:22px;">Carregue o arquivo do mês que deseja comparar — mesmo formato do arquivo já carregado.</p>
-    <label class="cmp-drop" id="cmp-drop-area" for="file-compare">
+    <p class="modal-sub" style="margin-bottom:22px;">Carregue o arquivo do mês que deseja comparar — mesmo formato do arquivo atual.</p>
+    <label class="cmp-drop-label" for="file-compare">
       <input type="file" id="file-compare" style="display:none;">
-      <span style="font-size:34px;display:block;">📂</span>
-      <p class="cmp-drop-title">Selecionar arquivo</p>
-      <p class="cmp-drop-sub" id="cmp-hint-text">CSV (Meta Ads) ou ZIP (Google Ads)</p>
+      <span style="font-size:34px;display:block;margin-bottom:10px;">📂</span>
+      <p style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;">Selecionar arquivo</p>
+      <p style="font-size:12px;color:var(--text-muted);" id="cmp-hint-text">CSV (Meta Ads) ou ZIP (Google Ads)</p>
     </label>
     <div class="modal-actions" style="margin-top:16px;">
       <button class="modal-close" style="flex:1;padding:12px;" onclick="fecharCompareModal()">Cancelar</button>
@@ -326,30 +375,37 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 /* ══════════════════════════════════════════
-   HELPERS
+   STATE & HELPERS
 ══════════════════════════════════════════ */
-let chartA = null, chartB = null, chartCmp = null;
-let _payload = null;
+const _charts = {}; // chart registry keyed by string
+let _payload     = null;
 let _payloadPrev = null;
-let _platform = null;
+let _platform    = null;
 
 Chart.defaults.font.family = "'DM Sans', sans-serif";
 
-const brl  = v => (!isFinite(v)||isNaN(v)) ? '—' : v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmtN = v => Math.round(v).toLocaleString('pt-BR');
-const fmtK = v => v>=1e6?(v/1e6).toFixed(1).replace('.',',')+' M':v>=1000?(v/1000).toFixed(1).replace('.',',')+' K':Math.round(v).toLocaleString('pt-BR');
-const pctFmt = v => (v*100).toFixed(1).replace('.',',')+' %';
+const brl   = v => (!isFinite(v)||isNaN(v)) ? '—' : v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtN  = v => Math.round(v).toLocaleString('pt-BR');
+const fmtK  = v => v>=1e6?(v/1e6).toFixed(1).replace('.',',')+' M':v>=1000?(v/1000).toFixed(1).replace('.',',')+' K':Math.round(v).toLocaleString('pt-BR');
+const pctFmt= v => (v*100).toFixed(1).replace('.',',')+' %';
 const parseBRL = s => parseFloat((s+'').replace(/R\$\s*/,'').replace(/\./g,'').replace(',','.')) || 0;
 const parsePct = s => parseFloat((s+'').replace('%','').replace(',','.')) / 100 || 0;
 const parseNum = s => parseFloat((s+'').replace(/\./g,'').replace(',','.')) || 0;
 const textMuted = 'rgba(245,241,234,0.55)';
 
+function mkChart(key, el, config) {
+  if(_charts[key]) _charts[key].destroy();
+  _charts[key] = new Chart(el, config);
+  return _charts[key];
+}
+function killChart(key) { if(_charts[key]){_charts[key].destroy(); delete _charts[key];} }
+
 function parseCSV(text) {
   const lines = text.split(/\r?\n/);
-  if (!lines.length) return [];
+  if(!lines.length) return [];
   const headers = splitLine(lines[0]);
   const rows = [];
-  for (let i=1;i<lines.length;i++) {
+  for(let i=1;i<lines.length;i++){
     const line=lines[i].trim(); if(!line) continue;
     const vals=splitLine(line), obj={};
     headers.forEach((h,j)=>{obj[h.trim()]=(vals[j]||'').trim();});
@@ -373,31 +429,28 @@ function col(row, kws) {
   return null;
 }
 function showErr(msg){const el=document.getElementById('error-msg');el.textContent=msg;el.style.display='block';}
-
-function setTheme(platform) {
-  _platform = platform;
-  const body = document.body;
-  body.classList.remove('platform-google');
-  if (platform === 'google') body.classList.add('platform-google');
+function setTheme(platform){
+  _platform=platform;
+  document.body.classList.remove('platform-google');
+  if(platform==='google') document.body.classList.add('platform-google');
 }
 
-function resetDashboard() {
+function resetDashboard(){
   document.getElementById('upload-screen').style.display='flex';
-  document.getElementById('dashboard').style.display='none';
+  ['dash-curr','dash-prev','dash-divider','compare-wrap'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display='none';
+  });
   document.getElementById('top-actions').classList.remove('visible');
   document.getElementById('error-msg').style.display='none';
   document.getElementById('file-meta').value='';
   document.getElementById('file-google').value='';
-  if(chartA){chartA.destroy();chartA=null;}
-  if(chartB){chartB.destroy();chartB=null;}
-  if(chartCmp){chartCmp.destroy();chartCmp=null;}
+  Object.keys(_charts).forEach(k=>killChart(k));
   _payload=null; _payloadPrev=null; _platform=null;
   document.body.classList.remove('platform-google');
 }
 
-/* ══════════════════════════════════════════
-   DRAG & DROP (both cards)
-══════════════════════════════════════════ */
+/* ── DRAG & DROP ── */
 ['meta','google'].forEach(p=>{
   const box=document.getElementById('drop-'+p);
   box.addEventListener('dragover',e=>{e.preventDefault();box.classList.add('drag-over');});
@@ -412,20 +465,51 @@ document.getElementById('file-meta').addEventListener('change',e=>{if(e.target.f
 document.getElementById('file-google').addEventListener('change',e=>{if(e.target.files[0])readGoogle(e.target.files[0]);});
 
 /* ══════════════════════════════════════════
-   META ADS
+   SHARED RENDER UTILS
+══════════════════════════════════════════ */
+function setHeader(sfx, agencyTag, platformTag, clientName, period) {
+  document.getElementById('agency-tag-'+sfx).textContent    = agencyTag;
+  document.getElementById('platform-tag-'+sfx).textContent  = platformTag;
+  document.getElementById('client-name-'+sfx).value         = clientName;
+  document.getElementById('period-'+sfx).textContent        = period;
+  document.getElementById('footer-date-'+sfx).textContent   =
+    new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'})+' · '+(agencyTag.includes('Google')?'Google Ads':'Meta Ads');
+}
+
+function renderInsights(sfx, ins) {
+  const grid=document.getElementById('insight-grid-'+sfx);
+  grid.innerHTML='';
+  ins.forEach(i=>{
+    const d=document.createElement('div');
+    d.className='insight-card';
+    d.innerHTML=`<div class="insight-icon">${i.icon}</div><div><p class="insight-title">${i.title}</p><p class="insight-text">${i.text}</p></div>`;
+    grid.appendChild(d);
+  });
+}
+
+/* ══════════════════════════════════════════
+   META ADS — READ & BUILD
 ══════════════════════════════════════════ */
 function readMeta(file) {
   if(!file.name.match(/\.csv$/i)){showErr('Meta Ads: selecione um arquivo .csv');return;}
   const reader=new FileReader();
   reader.onload=e=>{
     try{buildMeta(parseCSV(e.target.result),file.name);}
-    catch(err){showErr('Não foi possível ler o CSV. Verifique se é uma exportação de Campanhas do Meta Ads Manager. ('+err.message+')');}
+    catch(err){showErr('Não foi possível ler o CSV. ('+err.message+')');}
   };
   reader.readAsText(file,'UTF-8');
 }
 
 function buildMeta(rows, filename) {
-  if(!rows.length){showErr('CSV vazio.');return;}
+  const p = extractMetaPayload(rows, filename);
+  if(!p){showErr('Colunas não reconhecidas ou nenhuma campanha com investimento.');return;}
+  _payload=p; setTheme('meta');
+  showDashboard();
+  renderMeta('curr', p);
+}
+
+function extractMetaPayload(rows, filename) {
+  if(!rows.length) return null;
   const s=rows[0];
   const C={
     name:   col(s,['nome da campanha','campaign name']),
@@ -441,11 +525,11 @@ function buildMeta(rows, filename) {
     start:  col(s,['início','start']),
     end:    col(s,['término','end']),
   };
-  if(!C.spend){showErr('Colunas não reconhecidas. Use exportação de Campanhas do Meta Ads Manager.');return;}
+  if(!C.spend) return null;
 
   const n=v=>parseFloat((v||'0').toString().replace(',','.')) || 0;
   const active=rows.filter(r=>n(r[C.spend])>0);
-  if(!active.length){showErr('Nenhuma campanha com investimento.');return;}
+  if(!active.length) return null;
 
   const totalSpend  =active.reduce((s,r)=>s+n(r[C.spend]),0);
   const totalResults=active.reduce((s,r)=>s+n(r[C.results]),0);
@@ -488,27 +572,24 @@ function buildMeta(rows, filename) {
   else if(freq>0)ins.push({icon:'📡',title:`Frequência de ${freq.toFixed(2).replace('.',',')}× — entrega equilibrada`,text:`O público está sendo impactado de forma consistente sem sinais de saturação. CPM de R$ ${brl(cpm)} indica boa eficiência na entrega.`});
   ins.push({icon:'🎯',title:'Custo por resultado dentro de patamar competitivo',text:`R$ ${brl(cpr)} por resultado com CPC de R$ ${brl(cpc)}. O investimento de R$ ${brl(totalSpend)} gerou ${fmtN(totalClicks)} cliques e ${fmtN(totalResults)} conversões diretas.`});
 
-  _payload={platform:'meta',clientName,period,
+  return {platform:'meta',clientName,period,
     totalSpend,totalResults,totalReach,totalImp,totalClicks,cpr,cpc,cpm,freq,hookAvg,
     campaigns,insights:ins.slice(0,4)};
-
-  setTheme('meta');
-  renderMeta(_payload);
 }
 
-function renderMeta(p) {
-  setHeader('Relatório de Performance · Meta Ads','Meta Ads · Campanhas',p.clientName,p.period);
+function renderMeta(sfx, p) {
+  setHeader(sfx,'Relatório de Performance · Meta Ads','Meta Ads · Campanhas',p.clientName,p.period);
   const COLORS=['#C9A84C','#5C8FA8','#7A6FA8','#4CAF77','#A85C5C','#5CA87A','#888'];
 
   /* KPIs */
-  document.getElementById('kpi-grid').innerHTML=`
+  document.getElementById('kpi-grid-'+sfx).innerHTML=`
     <div class="kpi-card featured"><p class="kpi-label">Resultados</p><div class="kpi-value">${fmtN(p.totalResults)}</div><p class="kpi-sub">conversas iniciadas</p></div>
     <div class="kpi-card"><p class="kpi-label">Custo por resultado</p><div class="kpi-value"><span class="kpi-unit">R$</span> ${brl(p.cpr)}</div><p class="kpi-sub">por resultado gerado</p></div>
     <div class="kpi-card"><p class="kpi-label">Investimento total</p><div class="kpi-value"><span class="kpi-unit">R$</span> ${brl(p.totalSpend)}</div><p class="kpi-sub">valor aplicado</p></div>
     <div class="kpi-card"><p class="kpi-label">Pessoas alcançadas</p><div class="kpi-value">${fmtK(p.totalReach)}</div><p class="kpi-sub">alcance único</p></div>`;
 
   /* METRICS */
-  const mr=document.getElementById('metrics-row');
+  const mr=document.getElementById('metrics-row-'+sfx);
   mr.style.gridTemplateColumns='repeat(6,1fr)';
   mr.innerHTML=`
     <div class="metric-pill"><p class="metric-pill-label">Impressões</p><p class="metric-pill-value">${fmtK(p.totalImp)}</p><p class="metric-pill-sub">exibições totais</p></div>
@@ -524,13 +605,13 @@ function renderMeta(p) {
   const dRes=topRows.map(r=>r.results), dSpend=topRows.map(r=>r.spend);
   const bColors=topRows.map((_,i)=>COLORS[i%COLORS.length]);
 
-  document.getElementById('charts-row').style.gridTemplateColumns='1.3fr 0.7fr';
-  document.getElementById('charts-row').innerHTML=`
-    <div class="chart-card"><p class="chart-title">Resultados × Investimento</p><div style="position:relative;height:240px;"><canvas id="chartA"></canvas></div></div>
-    <div class="chart-card"><p class="chart-title">Distribuição</p><div style="display:flex;justify-content:center;"><div style="position:relative;height:170px;width:170px;"><canvas id="chartB"></canvas></div></div><div id="dough-legend" style="display:flex;flex-direction:column;gap:8px;margin-top:16px;"></div></div>`;
+  const cr=document.getElementById('charts-row-'+sfx);
+  cr.style.gridTemplateColumns='1.3fr 0.7fr';
+  cr.innerHTML=`
+    <div class="chart-card"><p class="chart-title">Resultados × Investimento</p><div style="position:relative;height:240px;"><canvas id="chartA-${sfx}"></canvas></div></div>
+    <div class="chart-card"><p class="chart-title">Distribuição</p><div style="display:flex;justify-content:center;"><div style="position:relative;height:170px;width:170px;"><canvas id="chartB-${sfx}"></canvas></div></div><div id="dough-legend-${sfx}" style="display:flex;flex-direction:column;gap:8px;margin-top:16px;"></div></div>`;
 
-  if(chartA)chartA.destroy();
-  chartA=new Chart(document.getElementById('chartA').getContext('2d'),{
+  mkChart('chartA-'+sfx, document.getElementById('chartA-'+sfx).getContext('2d'), {
     data:{labels,datasets:[
       {type:'bar',data:dRes,backgroundColor:bColors,borderRadius:6,borderSkipped:false,yAxisID:'y'},
       {type:'bar',data:dSpend,backgroundColor:'rgba(255,255,255,0.05)',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,borderRadius:6,borderSkipped:false,yAxisID:'y2'}
@@ -542,14 +623,15 @@ function renderMeta(p) {
         y:{position:'left',grid:{color:'rgba(255,255,255,0.04)'},border:{display:false},ticks:{color:textMuted,font:{size:11}}},
         y2:{position:'right',grid:{display:false},border:{display:false},ticks:{color:textMuted,font:{size:11},callback:v=>'R$'+v}}}}
   });
-  if(chartB)chartB.destroy();
-  chartB=new Chart(document.getElementById('chartB').getContext('2d'),{
+
+  mkChart('chartB-'+sfx, document.getElementById('chartB-'+sfx).getContext('2d'), {
     type:'doughnut',data:{labels,datasets:[{data:dRes,backgroundColor:bColors,borderColor:'#161616',borderWidth:3}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},
       tooltip:{backgroundColor:'#1E1E1E',borderColor:'rgba(201,168,76,0.3)',borderWidth:1,titleColor:'#F5F1EA',bodyColor:'rgba(245,241,234,0.7)',padding:12,
         callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw}}}}
   });
-  const legend=document.getElementById('dough-legend');
+
+  const legend=document.getElementById('dough-legend-'+sfx);
   legend.innerHTML='';
   const tot=dRes.reduce((a,b)=>a+b,0);
   topRows.forEach((_,i)=>{
@@ -561,31 +643,30 @@ function renderMeta(p) {
   });
 
   /* TABLE */
-  document.getElementById('table-section-label').textContent='Campanhas';
-  const ds=document.getElementById('data-section');
-  ds.innerHTML='<table class="data-table"><thead><tr><th>Campanha</th><th>Status</th><th>Investido</th><th>Resultados</th><th>Custo/Result.</th><th>Alcance</th><th>Cliques</th></tr></thead><tbody id="data-tbody"></tbody></table>';
-  const tbody=document.getElementById('data-tbody');
+  document.getElementById('table-lbl-'+sfx).textContent='Campanhas';
+  const ds=document.getElementById('data-section-'+sfx);
+  ds.innerHTML=`<table class="data-table"><thead><tr><th>Campanha</th><th>Status</th><th>Investido</th><th>Resultados</th><th>Custo/Result.</th><th>Alcance</th><th>Cliques</th></tr></thead><tbody id="data-tbody-${sfx}"></tbody></table>`;
+  const tbody=document.getElementById('data-tbody-'+sfx);
   p.campaigns.forEach(r=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`<td><span class="cell-name">${r.name}</span>${r.isBest?'<span class="best-tag">melhor CPR</span>':''}</td>
       <td><span class="status-badge ${r.statusCls}">${r.statusTxt}</span></td>
       <td>${r.spend>0?'R$ '+brl(r.spend):'—'}</td>
-      <td>${r.results>0?'<span class="'+(r.isBest?'highlight':'')+'">'+fmtN(r.results)+'</span>':'—'}</td>
+      <td>${r.results>0?'<span class="'+(r.isBest?'highlight':'')+'">' +fmtN(r.results)+'</span>':'—'}</td>
       <td>${r.cpr!==null?'<span class="'+(r.isBest?'highlight':'')+'">R$ '+brl(r.cpr)+'</span>':'—'}</td>
       <td>${r.reach>0?fmtN(r.reach):'—'}</td>
       <td>${r.clicks>0?fmtN(r.clicks):'—'}</td>`;
     tbody.appendChild(tr);
   });
 
-  renderInsights(p.insights);
-  showDashboard(p);
+  renderInsights(sfx, p.insights);
 }
 
 /* ══════════════════════════════════════════
-   GOOGLE ADS
+   GOOGLE ADS — READ & BUILD
 ══════════════════════════════════════════ */
 async function readGoogle(file) {
-  if(!file.name.match(/\.zip$/i)){showErr('Google Ads: selecione o arquivo .zip exportado (Cards da Visão Geral → Exportar CSV).');return;}
+  if(!file.name.match(/\.zip$/i)){showErr('Google Ads: selecione o arquivo .zip exportado.');return;}
   try{
     const zip=await JSZip.loadAsync(file);
     const files={};
@@ -596,28 +677,34 @@ async function readGoogle(file) {
       promises.push(entry.async('string').then(text=>{files[name]=text;}));
     });
     await Promise.all(promises);
-    buildGoogle(files,file.name);
+    const p=extractGooglePayload(files, file.name);
+    if(!p){showErr('Arquivos não reconhecidos no ZIP.');return;}
+    _payload=p; setTheme('google');
+    showDashboard();
+    renderGoogle('curr', p);
   }catch(e){showErr('Erro ao ler o ZIP: '+e.message);}
 }
 
-function buildGoogle(files, zipName) {
+function extractGooglePayload(files, zipName) {
   const findF=kw=>Object.keys(files).find(k=>k.includes(kw));
   const fCamp =findF('campanhas');
   const fSerie=findF('rie_temporal')||findF('serie_temporal');
   const fDev  =findF('dispositivos');
   const fAlter=findF('maiores_altera');
   const fKw   =findF('palavras-chave_de_pesquisa');
-  if(!fCamp&&!fSerie){showErr('Arquivos não reconhecidos no ZIP. Exporte via Google Ads → Relatórios → Cards da Visão Geral → CSV.');return;}
+  if(!fCamp&&!fSerie) return null;
 
-  const camps=fCamp?parseCSV(files[fCamp]):[];
   let totalSpend=0,totalClicks=0,totalCTR=0;
-  if(camps.length){
-    const kS=Object.keys(camps[0]);
-    const kCost =kS.find(k=>k.toLowerCase().includes('custo')&&!k.toLowerCase().includes('conv'));
-    const kClick=kS.find(k=>k.toLowerCase().includes('cliques'));
-    const kCTR  =kS.find(k=>k.toLowerCase()==='ctr');
-    camps.forEach(r=>{totalSpend+=parseBRL(r[kCost]);totalClicks+=parseNum(r[kClick]);});
-    if(kCTR&&camps[0])totalCTR=parsePct(camps[0][kCTR]);
+  if(fCamp){
+    const camps=parseCSV(files[fCamp]);
+    if(camps.length){
+      const kS=Object.keys(camps[0]);
+      const kCost =kS.find(k=>k.toLowerCase().includes('custo')&&!k.toLowerCase().includes('conv'));
+      const kClick=kS.find(k=>k.toLowerCase().includes('cliques'));
+      const kCTR  =kS.find(k=>k.toLowerCase()==='ctr');
+      camps.forEach(r=>{totalSpend+=parseBRL(r[kCost]);totalClicks+=parseNum(r[kClick]);});
+      if(kCTR&&camps[0])totalCTR=parsePct(camps[0][kCTR]);
+    }
   }
 
   const serie=fSerie?parseCSV(files[fSerie]):[];
@@ -673,7 +760,6 @@ function buildGoogle(files, zipName) {
   const cpc=totalClicks>0?totalSpend/totalClicks:0;
   const cvr=totalClicks>0?totalConv/totalClicks:0;
   if(!totalCTR&&totalImp>0)totalCTR=totalClicks/totalImp;
-
   const period=extractPeriodFromZip(zipName)||'—';
   const clientName=guessClientGoogle(zipName);
 
@@ -685,24 +771,21 @@ function buildGoogle(files, zipName) {
   else if(totalCTR>0)ins.push({icon:'🎯',title:`CTR de ${pctFmt(totalCTR)} — boa visibilidade`,text:`A campanha está sendo exibida para ${fmtK(totalImp)} buscas com CPC médio de R$ ${brl(cpc)}. Otimizar títulos dos anúncios pode aumentar o CTR.`});
   ins.push({icon:'📈',title:'Rede de Pesquisa capturando demanda ativa',text:`Usuários que buscam serviços específicos têm alta intenção de contratação. Com ${fmtN(totalClicks)} cliques e R$ ${brl(totalSpend)} investidos, o canal está performando de forma sólida.`});
 
-  _payload={platform:'google',clientName,period,
+  return {platform:'google',clientName,period,
     totalSpend,totalConv,totalClicks,totalImp,cpl,cpc,cvr,ctr:totalCTR,activeDays,
     dailyLabels,dailyCost,dailyConv,groupData,kwData,insights:ins.slice(0,4)};
-
-  setTheme('google');
-  renderGoogle(_payload);
 }
 
-function renderGoogle(p) {
-  setHeader('Relatório de Performance · Google Ads','Google Ads · Rede de Pesquisa',p.clientName,p.period);
+function renderGoogle(sfx, p) {
+  setHeader(sfx,'Relatório de Performance · Google Ads','Google Ads · Rede de Pesquisa',p.clientName,p.period);
 
-  document.getElementById('kpi-grid').innerHTML=`
+  document.getElementById('kpi-grid-'+sfx).innerHTML=`
     <div class="kpi-card featured"><p class="kpi-label">Conversões</p><div class="kpi-value">${fmtN(p.totalConv)}</div><p class="kpi-sub">leads / ações geradas</p></div>
     <div class="kpi-card"><p class="kpi-label">Custo por conversão</p><div class="kpi-value"><span class="kpi-unit">R$</span> ${brl(p.cpl)}</div><p class="kpi-sub">por lead gerado</p></div>
     <div class="kpi-card"><p class="kpi-label">Investimento total</p><div class="kpi-value"><span class="kpi-unit">R$</span> ${brl(p.totalSpend)}</div><p class="kpi-sub">valor aplicado</p></div>
     <div class="kpi-card"><p class="kpi-label">Cliques</p><div class="kpi-value">${fmtN(p.totalClicks)}</div><p class="kpi-sub">acessos gerados</p></div>`;
 
-  const mr=document.getElementById('metrics-row');
+  const mr=document.getElementById('metrics-row-'+sfx);
   mr.style.gridTemplateColumns='repeat(5,1fr)';
   mr.innerHTML=`
     <div class="metric-pill"><p class="metric-pill-label">Impressões</p><p class="metric-pill-value">${fmtK(p.totalImp)}</p><p class="metric-pill-sub">buscas exibidas</p></div>
@@ -711,14 +794,14 @@ function renderGoogle(p) {
     <div class="metric-pill"><p class="metric-pill-label">Taxa de conv.</p><p class="metric-pill-value">${pctFmt(p.cvr)}</p><p class="metric-pill-sub">cliques → lead</p></div>
     <div class="metric-pill"><p class="metric-pill-label">Dias ativos</p><p class="metric-pill-value">${p.activeDays}</p><p class="metric-pill-sub">com investimento</p></div>`;
 
-  document.getElementById('chart-section-label').textContent='Performance no período';
-  document.getElementById('charts-row').style.gridTemplateColumns='1.6fr 1fr';
-  document.getElementById('charts-row').innerHTML=`
-    <div class="chart-card"><p class="chart-title">Custo diário × Conversões</p><div style="position:relative;height:240px;"><canvas id="chartA"></canvas></div></div>
-    <div class="chart-card"><p class="chart-title">Top grupos de anúncios</p><div style="position:relative;height:240px;"><canvas id="chartB"></canvas></div></div>`;
+  document.getElementById('chart-lbl-'+sfx).textContent='Performance no período';
+  const cr=document.getElementById('charts-row-'+sfx);
+  cr.style.gridTemplateColumns='1.6fr 1fr';
+  cr.innerHTML=`
+    <div class="chart-card"><p class="chart-title">Custo diário × Conversões</p><div style="position:relative;height:240px;"><canvas id="chartA-${sfx}"></canvas></div></div>
+    <div class="chart-card"><p class="chart-title">Top grupos de anúncios</p><div style="position:relative;height:240px;"><canvas id="chartB-${sfx}"></canvas></div></div>`;
 
-  if(chartA)chartA.destroy();
-  chartA=new Chart(document.getElementById('chartA').getContext('2d'),{
+  mkChart('chartA-'+sfx, document.getElementById('chartA-'+sfx).getContext('2d'), {
     data:{labels:p.dailyLabels,datasets:[
       {type:'bar',data:p.dailyCost,backgroundColor:'rgba(66,133,244,0.25)',borderColor:'rgba(66,133,244,0.5)',borderWidth:1,borderRadius:3,yAxisID:'y'},
       {type:'line',data:p.dailyConv,borderColor:'#34A853',backgroundColor:'rgba(52,168,83,0.1)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#34A853',tension:0.3,yAxisID:'y2'}
@@ -731,9 +814,8 @@ function renderGoogle(p) {
         y2:{position:'right',grid:{display:false},border:{display:false},ticks:{color:textMuted,font:{size:11}}}}}
   });
 
-  if(chartB)chartB.destroy();
   if(p.groupData.length){
-    chartB=new Chart(document.getElementById('chartB').getContext('2d'),{
+    mkChart('chartB-'+sfx, document.getElementById('chartB-'+sfx).getContext('2d'), {
       type:'bar',
       data:{labels:p.groupData.map(g=>g.name.length>20?g.name.substring(0,18)+'…':g.name),datasets:[{data:p.groupData.map(g=>+g.spend.toFixed(2)),backgroundColor:'#4285F4',borderRadius:4,borderSkipped:false}]},
       options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
@@ -744,10 +826,10 @@ function renderGoogle(p) {
     });
   }
 
-  document.getElementById('table-section-label').textContent='Palavras-chave principais';
-  const ds=document.getElementById('data-section');
-  ds.innerHTML='<table class="data-table"><thead><tr><th>Palavra-chave</th><th>Investido</th><th>Cliques</th><th>CTR</th><th>Participação</th></tr></thead><tbody id="data-tbody"></tbody></table>';
-  const tbody=document.getElementById('data-tbody');
+  document.getElementById('table-lbl-'+sfx).textContent='Palavras-chave principais';
+  const ds=document.getElementById('data-section-'+sfx);
+  ds.innerHTML=`<table class="data-table"><thead><tr><th>Palavra-chave</th><th>Investido</th><th>Cliques</th><th>CTR</th><th>Participação</th></tr></thead><tbody id="data-tbody-${sfx}"></tbody></table>`;
+  const tbody=document.getElementById('data-tbody-'+sfx);
   const maxS=p.kwData[0]?.spend||1;
   p.kwData.forEach((kw,i)=>{
     const pctBar=Math.round((kw.spend/maxS)*100);
@@ -760,47 +842,243 @@ function renderGoogle(p) {
     tbody.appendChild(tr);
   });
 
-  renderInsights(p.insights);
-  showDashboard(p);
+  renderInsights(sfx, p.insights);
 }
 
 /* ══════════════════════════════════════════
-   SHARED RENDER UTILS
+   SHOW / HIDE DASHBOARD
 ══════════════════════════════════════════ */
-function setHeader(agencyTag, platformTag, clientName, period) {
-  document.getElementById('agency-tag').textContent=agencyTag;
-  document.getElementById('platform-tag').textContent=platformTag;
-  document.getElementById('client-name-input').value=clientName;
-  document.getElementById('period-text').textContent=period;
-  document.getElementById('footer-date').textContent=new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'})+' · '+(agencyTag.includes('Google')?'Google Ads':'Meta Ads');
-}
-
-function renderInsights(ins) {
-  const grid=document.getElementById('insight-grid');
-  grid.innerHTML='';
-  ins.forEach(i=>{
-    const d=document.createElement('div');
-    d.className='insight-card';
-    d.innerHTML=`<div class="insight-icon">${i.icon}</div><div><p class="insight-title">${i.title}</p><p class="insight-text">${i.text}</p></div>`;
-    grid.appendChild(d);
-  });
-}
-
-function showDashboard(p) {
+function showDashboard() {
   document.getElementById('upload-screen').style.display='none';
-  document.getElementById('dashboard').style.display='block';
+  document.getElementById('dash-curr').style.display='block';
   document.getElementById('top-actions').classList.add('visible');
-  document.getElementById('compare-section').style.display='none';
+  // Hide prev & compare if loading a new main file
+  document.getElementById('dash-divider').style.display='none';
+  document.getElementById('dash-prev').style.display='none';
+  document.getElementById('compare-wrap').style.display='none';
   _payloadPrev=null;
-  if(chartCmp){chartCmp.destroy();chartCmp=null;}
+  ['chartA-prev','chartB-prev','chartCmp'].forEach(k=>killChart(k));
 }
 
 /* ══════════════════════════════════════════
    CLIENT NAME SYNC
 ══════════════════════════════════════════ */
-document.getElementById('client-name-input').addEventListener('input',e=>{
-  if(_payload)_payload.clientName=e.target.value;
+document.getElementById('client-name-curr').addEventListener('input',e=>{
+  if(_payload) _payload.clientName=e.target.value;
 });
+
+/* ══════════════════════════════════════════
+   COMPARE — MODAL
+══════════════════════════════════════════ */
+function abrirCompareModal() {
+  if(!_payload) return;
+  const hint=_platform==='meta'?'Arquivo .csv — Campanhas (Meta Ads Manager)':'Arquivo .zip — Cards da Visão Geral (Google Ads)';
+  document.getElementById('cmp-hint-text').textContent=hint;
+  document.getElementById('file-compare').accept=_platform==='meta'?'.csv,.CSV':'.zip,.ZIP';
+  document.getElementById('compare-modal').style.display='flex';
+}
+function fecharCompareModal(){
+  document.getElementById('compare-modal').style.display='none';
+}
+function removerComparativo(){
+  _payloadPrev=null;
+  document.getElementById('dash-prev').style.display='none';
+  document.getElementById('dash-divider').style.display='none';
+  document.getElementById('compare-wrap').style.display='none';
+  ['chartA-prev','chartB-prev','chartCmp'].forEach(k=>killChart(k));
+}
+
+document.getElementById('file-compare').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  fecharCompareModal();
+  if(_platform==='meta') readMetaCompare(f);
+  else readGoogleCompare(f);
+  e.target.value='';
+});
+
+/* ── DRAG/DROP on compare modal ── */
+const cmpDropLabel=document.querySelector('.cmp-drop-label');
+cmpDropLabel.addEventListener('dragover',e=>{e.preventDefault();cmpDropLabel.style.background='var(--accent-dim)';});
+cmpDropLabel.addEventListener('dragleave',()=>{cmpDropLabel.style.background='var(--surface)';});
+cmpDropLabel.addEventListener('drop',e=>{
+  e.preventDefault();cmpDropLabel.style.background='var(--surface)';
+  const f=e.dataTransfer.files[0]; if(!f) return;
+  fecharCompareModal();
+  if(_platform==='meta') readMetaCompare(f);
+  else readGoogleCompare(f);
+});
+
+/* ══════════════════════════════════════════
+   COMPARE — READ PREV FILES
+══════════════════════════════════════════ */
+function readMetaCompare(file) {
+  if(!file.name.match(/\.csv$/i)){showErr('Comparativo: selecione um arquivo .csv');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const p=extractMetaPayload(parseCSV(e.target.result),file.name);
+      if(!p){showErr('Não foi possível ler o CSV do mês anterior.');return;}
+      _payloadPrev=p;
+      renderPrevDashboardAndCompare();
+    }catch(err){showErr('Erro no comparativo: '+err.message);}
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+async function readGoogleCompare(file) {
+  if(!file.name.match(/\.zip$/i)){showErr('Comparativo: selecione um arquivo .zip');return;}
+  try{
+    const zip=await JSZip.loadAsync(file);
+    const files={};
+    const promises=[];
+    zip.forEach((path,entry)=>{
+      if(entry.dir||!path.endsWith('.csv'))return;
+      const name=path.split('/').pop().toLowerCase();
+      promises.push(entry.async('string').then(text=>{files[name]=text;}));
+    });
+    await Promise.all(promises);
+    const p=extractGooglePayload(files,file.name);
+    if(!p){showErr('Não foi possível ler o ZIP do mês anterior.');return;}
+    _payloadPrev=p;
+    renderPrevDashboardAndCompare();
+  }catch(e){showErr('Erro ao ler ZIP do comparativo: '+e.message);}
+}
+
+/* ══════════════════════════════════════════
+   RENDER PREV DASHBOARD + COMPARISON
+══════════════════════════════════════════ */
+function renderPrevDashboardAndCompare() {
+  const prev=_payloadPrev;
+  const curr=_payload;
+
+  // Show the separator
+  document.getElementById('dash-divider').style.display='block';
+
+  // Show prev dashboard
+  const prevWrap=document.getElementById('dash-prev');
+  prevWrap.style.display='block';
+
+  // Render prev month data into prev dashboard
+  if(prev.platform==='meta') renderMeta('prev', prev);
+  else renderGoogle('prev', prev);
+
+  // Render comparativo section
+  renderComparativo(curr, prev);
+
+  // Scroll smoothly to prev dashboard
+  setTimeout(()=>prevWrap.scrollIntoView({behavior:'smooth',block:'start'}),150);
+}
+
+/* ══════════════════════════════════════════
+   RENDER COMPARATIVO SECTION
+══════════════════════════════════════════ */
+function renderComparativo(curr, prev) {
+  document.getElementById('cmp-label-curr').textContent=curr.period!=='—'?curr.period:'Mês atual';
+  document.getElementById('cmp-label-prev').textContent=prev.period!=='—'?prev.period:'Mês anterior';
+
+  document.getElementById('compare-wrap').style.display='block';
+
+  const grid=document.getElementById('cmp-grid');
+  grid.innerHTML='';
+
+  let metrics;
+  if(curr.platform==='meta'){
+    metrics=[
+      {label:'Resultados',   currVal:curr.totalResults, prevVal:prev.totalResults, fmt:fmtN,  prefix:'',    hib:true, featured:true},
+      {label:'Investimento', currVal:curr.totalSpend,   prevVal:prev.totalSpend,   fmt:brl,   prefix:'R$ ', hib:false},
+      {label:'Custo/Result.',currVal:curr.cpr,           prevVal:prev.cpr,          fmt:brl,   prefix:'R$ ', hib:false},
+      {label:'Alcance',      currVal:curr.totalReach,   prevVal:prev.totalReach,   fmt:fmtK,  prefix:'',    hib:true},
+      {label:'Cliques',      currVal:curr.totalClicks,  prevVal:prev.totalClicks,  fmt:fmtN,  prefix:'',    hib:true},
+      {label:'CPM',          currVal:curr.cpm,           prevVal:prev.cpm,          fmt:brl,   prefix:'R$ ', hib:false},
+    ];
+  } else {
+    metrics=[
+      {label:'Conversões',   currVal:curr.totalConv,    prevVal:prev.totalConv,    fmt:fmtN,  prefix:'',    hib:true, featured:true},
+      {label:'Investimento', currVal:curr.totalSpend,   prevVal:prev.totalSpend,   fmt:brl,   prefix:'R$ ', hib:false},
+      {label:'Custo/Conv.',  currVal:curr.cpl,           prevVal:prev.cpl,          fmt:brl,   prefix:'R$ ', hib:false},
+      {label:'Cliques',      currVal:curr.totalClicks,  prevVal:prev.totalClicks,  fmt:fmtN,  prefix:'',    hib:true},
+      {label:'CTR',          currVal:curr.ctr,           prevVal:prev.ctr,          fmt:v=>pctFmt(v), prefix:'', hib:true},
+      {label:'CPC médio',    currVal:curr.cpc,           prevVal:prev.cpc,          fmt:brl,   prefix:'R$ ', hib:false},
+    ];
+  }
+
+  metrics.forEach(m=>{
+    const diff=m.prevVal>0?((m.currVal-m.prevVal)/m.prevVal)*100:0;
+    const isGood=m.hib?diff>=0:diff<=0;
+    const isNeutral=Math.abs(diff)<0.05;
+    const cls=isNeutral?'neutral':(isGood?'good':'bad');
+    const arrow=isNeutral?'→':(diff>0?'▲':'▼');
+    const diffStr=(diff>=0?'+':'')+diff.toFixed(1).replace('.',',')+'%';
+
+    const card=document.createElement('div');
+    card.className='cmp-card'+(m.featured?' featured':'');
+    card.innerHTML=`
+      <p class="cmp-label">${m.label}</p>
+      <div class="cmp-vals">
+        <div class="cmp-val-blk">
+          <p class="cmp-val-period">Atual</p>
+          <p class="cmp-val-num is-curr">${m.currVal>0?m.prefix+m.fmt(m.currVal):'—'}</p>
+        </div>
+        <div class="cmp-divid"></div>
+        <div class="cmp-val-blk">
+          <p class="cmp-val-period">Anterior</p>
+          <p class="cmp-val-num is-prev">${m.prevVal>0?m.prefix+m.fmt(m.prevVal):'—'}</p>
+        </div>
+        <div class="cmp-divid"></div>
+        <div class="cmp-delta-blk">
+          <div class="cmp-delta ${cls}">${arrow} ${diffStr}</div>
+          <p class="cmp-delta-sub">${isNeutral?'estável':(isGood?'melhora':'queda')}</p>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  /* CHART */
+  const currLabel=curr.period!=='—'?curr.period:'Mês atual';
+  const prevLabel=prev.period!=='—'?prev.period:'Mês anterior';
+
+  const cmpLabels=curr.platform==='meta'
+    ?['Resultados','Cliques','Alcance (K)','Investimento (R$)']
+    :['Conversões','Cliques','CTR (×100)','Investimento (R$)'];
+
+  const cmpCurr=curr.platform==='meta'
+    ?[curr.totalResults,curr.totalClicks,curr.totalReach/1000,curr.totalSpend]
+    :[curr.totalConv,curr.totalClicks,curr.ctr*100,curr.totalSpend];
+
+  const cmpPrev=curr.platform==='meta'
+    ?[prev.totalResults,prev.totalClicks,prev.totalReach/1000,prev.totalSpend]
+    :[prev.totalConv,prev.totalClicks,prev.ctr*100,prev.totalSpend];
+
+  const accentC =curr.platform==='meta'?'rgba(201,168,76,0.85)':'rgba(66,133,244,0.85)';
+  const accentB =curr.platform==='meta'?'#C9A84C':'#4285F4';
+  const tooltipBg=curr.platform==='meta'?'#1E1E1E':'#1A1F2E';
+  const tooltipBd=curr.platform==='meta'?'rgba(201,168,76,0.3)':'rgba(66,133,244,0.3)';
+
+  killChart('chartCmp');
+  mkChart('chartCmp', document.getElementById('chartCmp').getContext('2d'), {
+    type:'bar',
+    data:{
+      labels:cmpLabels,
+      datasets:[
+        {label:currLabel, data:cmpCurr, backgroundColor:accentC, borderColor:accentB, borderWidth:1.5, borderRadius:6, borderSkipped:false},
+        {label:prevLabel, data:cmpPrev, backgroundColor:'rgba(255,255,255,0.12)', borderColor:'rgba(255,255,255,0.25)', borderWidth:1, borderRadius:6, borderSkipped:false},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:true,position:'top',labels:{color:textMuted,font:{size:12,family:"'DM Sans',sans-serif"},boxWidth:12,boxHeight:12,borderRadius:3,useBorderRadius:true,padding:20}},
+        tooltip:{backgroundColor:tooltipBg,borderColor:tooltipBd,borderWidth:1,titleColor:'#F5F1EA',bodyColor:'rgba(245,241,234,0.7)',padding:12,
+          callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR',{maximumFractionDigits:1})}}
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'},ticks:{color:textMuted,font:{size:12}}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},border:{display:false},ticks:{color:textMuted,font:{size:11}}}
+      }
+    }
+  });
+}
 
 /* ══════════════════════════════════════════
    SHARE LINK
@@ -833,275 +1111,15 @@ window.addEventListener('load',()=>{
     try{
       const p=JSON.parse(LZString.decompressFromEncodedURIComponent(hash.slice(3)));
       if(!p)return;
+      _payload=p;
       setTheme(p.platform);
-      if(p.platform==='meta')renderMeta(p);
-      else renderGoogle(p);
+      showDashboard();
+      if(p.platform==='meta') renderMeta('curr',p);
+      else renderGoogle('curr',p);
       document.getElementById('top-actions').querySelector('.action-btn.alt').style.display='none';
     }catch(e){console.warn('Hash inválido',e);}
   },400);
 });
-
-/* ══════════════════════════════════════════
-   COMPARATIVO DE MESES
-══════════════════════════════════════════ */
-function abrirCompareModal() {
-  if(!_payload){return;}
-  const hint = _platform==='meta' ? 'Arquivo .csv — exportação de Campanhas (Meta Ads Manager)' : 'Arquivo .zip — Cards da Visão Geral (Google Ads)';
-  document.getElementById('cmp-hint-text').textContent = hint;
-  document.getElementById('file-compare').accept = _platform==='meta' ? '.csv,.CSV' : '.zip,.ZIP';
-  document.getElementById('compare-modal').style.display = 'flex';
-}
-function fecharCompareModal() {
-  document.getElementById('compare-modal').style.display = 'none';
-}
-function removerComparativo() {
-  _payloadPrev = null;
-  document.getElementById('compare-section').style.display = 'none';
-  if(chartCmp){chartCmp.destroy();chartCmp=null;}
-}
-
-document.getElementById('file-compare').addEventListener('change', e => {
-  const f = e.target.files[0]; if(!f) return;
-  fecharCompareModal();
-  if(_platform==='meta') readMetaCompare(f);
-  else readGoogleCompare(f);
-  e.target.value='';
-});
-
-// drag/drop on compare modal
-const cmpDrop = document.getElementById('cmp-drop-area');
-cmpDrop.addEventListener('dragover', e=>{e.preventDefault();cmpDrop.style.background='var(--accent-dim)';});
-cmpDrop.addEventListener('dragleave', ()=>{cmpDrop.style.background='var(--surface)';});
-cmpDrop.addEventListener('drop', e=>{
-  e.preventDefault(); cmpDrop.style.background='var(--surface)';
-  const f=e.dataTransfer.files[0]; if(!f) return;
-  fecharCompareModal();
-  if(_platform==='meta') readMetaCompare(f);
-  else readGoogleCompare(f);
-});
-
-function readMetaCompare(file) {
-  if(!file.name.match(/\.csv$/i)){showErr('Comparativo: selecione um arquivo .csv do Meta Ads');return;}
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      const rows=parseCSV(e.target.result);
-      const p=extractMetaPayload(rows, file.name);
-      if(!p){showErr('Não foi possível ler o CSV do mês anterior.');return;}
-      _payloadPrev=p;
-      renderComparativo(_payload, _payloadPrev);
-    }catch(err){showErr('Erro no comparativo: '+err.message);}
-  };
-  reader.readAsText(file,'UTF-8');
-}
-
-async function readGoogleCompare(file) {
-  if(!file.name.match(/\.zip$/i)){showErr('Comparativo: selecione um arquivo .zip do Google Ads');return;}
-  try{
-    const zip=await JSZip.loadAsync(file);
-    const files={};
-    const promises=[];
-    zip.forEach((path,entry)=>{
-      if(entry.dir||!path.endsWith('.csv'))return;
-      const name=path.split('/').pop().toLowerCase();
-      promises.push(entry.async('string').then(text=>{files[name]=text;}));
-    });
-    await Promise.all(promises);
-    const p=extractGooglePayload(files, file.name);
-    if(!p){showErr('Não foi possível ler o ZIP do mês anterior.');return;}
-    _payloadPrev=p;
-    renderComparativo(_payload, _payloadPrev);
-  }catch(e){showErr('Erro ao ler ZIP do comparativo: '+e.message);}
-}
-
-/* Extrai payload agregado Meta sem renderizar */
-function extractMetaPayload(rows, filename) {
-  if(!rows.length) return null;
-  const s=rows[0];
-  const C={
-    name:   col(s,['nome da campanha','campaign name']),
-    status: col(s,['veiculação','delivery','status']),
-    spend:  col(s,['valor usado','amount spent','spend']),
-    results:col(s,['resultados','results']),
-    clicks: col(s,['cliques no link','link clicks']),
-    reach:  col(s,['alcance','reach']),
-    imp:    col(s,['impressões','impressions']),
-    start:  col(s,['início','start']),
-    end:    col(s,['término','end']),
-  };
-  if(!C.spend) return null;
-  const n=v=>parseFloat((v||'0').toString().replace(',','.')) || 0;
-  const active=rows.filter(r=>n(r[C.spend])>0);
-  if(!active.length) return null;
-  const totalSpend  =active.reduce((s,r)=>s+n(r[C.spend]),0);
-  const totalResults=active.reduce((s,r)=>s+n(r[C.results]),0);
-  const totalReach  =active.reduce((s,r)=>s+n(r[C.reach]),0);
-  const totalImp    =active.reduce((s,r)=>s+n(r[C.imp]),0);
-  const totalClicks =active.reduce((s,r)=>s+n(r[C.clicks]),0);
-  const cpr  =totalResults>0?totalSpend/totalResults:0;
-  const cpc  =totalClicks >0?totalSpend/totalClicks :0;
-  const cpm  =totalImp    >0?(totalSpend/totalImp)*1000:0;
-  const period=parsePeriodDates(rows,C.start,C.end);
-  return {platform:'meta',period,totalSpend,totalResults,totalReach,totalImp,totalClicks,cpr,cpc,cpm};
-}
-
-/* Extrai payload agregado Google sem renderizar */
-function extractGooglePayload(files, zipName) {
-  const findF=kw=>Object.keys(files).find(k=>k.includes(kw));
-  const fCamp=findF('campanhas');
-  const fSerie=findF('rie_temporal')||findF('serie_temporal');
-  if(!fCamp&&!fSerie) return null;
-  let totalSpend=0,totalClicks=0,totalCTR=0;
-  if(fCamp){
-    const camps=parseCSV(files[fCamp]);
-    if(camps.length){
-      const kS=Object.keys(camps[0]);
-      const kCost=kS.find(k=>k.toLowerCase().includes('custo')&&!k.toLowerCase().includes('conv'));
-      const kClick=kS.find(k=>k.toLowerCase().includes('cliques'));
-      const kCTR=kS.find(k=>k.toLowerCase()==='ctr');
-      camps.forEach(r=>{totalSpend+=parseBRL(r[kCost]);totalClicks+=parseNum(r[kClick]);});
-      if(kCTR&&camps[0])totalCTR=parsePct(camps[0][kCTR]);
-    }
-  }
-  let totalConv=0,totalImp=0;
-  if(fSerie){
-    const serie=parseCSV(files[fSerie]);
-    if(serie.length){
-      const kS=Object.keys(serie[0]);
-      const kCost=kS.find(k=>k.toLowerCase().includes('custo')&&!k.toLowerCase().includes('conv'));
-      const kConv=kS.find(k=>k.toLowerCase().includes('convers'));
-      serie.forEach(r=>{const cost=parseBRL(r[kCost]);const conv=parseNum(r[kConv]);totalConv+=conv;if(totalSpend===0)totalSpend+=cost;});
-    }
-  }
-  const fDev=findF('dispositivos');
-  if(fDev){const devs=parseCSV(files[fDev]);if(devs.length){const kI=Object.keys(devs[0]).find(k=>k.toLowerCase().includes('impres'));devs.forEach(r=>{totalImp+=parseNum(r[kI]);});}}
-  const cpl=totalConv>0?totalSpend/totalConv:0;
-  const cpc=totalClicks>0?totalSpend/totalClicks:0;
-  const cvr=totalClicks>0?totalConv/totalClicks:0;
-  if(!totalCTR&&totalImp>0)totalCTR=totalClicks/totalImp;
-  const period=extractPeriodFromZip(zipName)||'—';
-  return {platform:'google',period,totalSpend,totalConv,totalClicks,totalImp,cpl,cpc,cvr,ctr:totalCTR};
-}
-
-/* Renderiza a seção de comparativo */
-function renderComparativo(curr, prev) {
-  document.getElementById('cmp-label-curr').textContent = curr.period!=='—'?curr.period:'Mês atual';
-  document.getElementById('cmp-label-prev').textContent = prev.period!=='—'?prev.period:'Mês anterior';
-
-  const section = document.getElementById('compare-section');
-  section.style.display = 'block';
-
-  // Scroll até a seção
-  setTimeout(()=>section.scrollIntoView({behavior:'smooth',block:'start'}), 100);
-
-  const grid = document.getElementById('compare-grid');
-  grid.innerHTML = '';
-
-  // Define métricas conforme plataforma
-  let metrics;
-  if(curr.platform==='meta') {
-    metrics = [
-      {label:'Resultados',  currVal:curr.totalResults, prevVal:prev.totalResults, fmt:fmtN,  prefix:'',    higherIsBetter:true,  featured:true},
-      {label:'Investimento',currVal:curr.totalSpend,   prevVal:prev.totalSpend,   fmt:brl,   prefix:'R$ ', higherIsBetter:false},
-      {label:'Custo/Result.',currVal:curr.cpr,          prevVal:prev.cpr,          fmt:brl,   prefix:'R$ ', higherIsBetter:false},
-      {label:'Alcance',     currVal:curr.totalReach,   prevVal:prev.totalReach,   fmt:fmtK,  prefix:'',    higherIsBetter:true},
-      {label:'Cliques',     currVal:curr.totalClicks,  prevVal:prev.totalClicks,  fmt:fmtN,  prefix:'',    higherIsBetter:true},
-      {label:'CPM',         currVal:curr.cpm,          prevVal:prev.cpm,          fmt:brl,   prefix:'R$ ', higherIsBetter:false},
-    ];
-  } else {
-    metrics = [
-      {label:'Conversões',  currVal:curr.totalConv,    prevVal:prev.totalConv,    fmt:fmtN,  prefix:'',    higherIsBetter:true,  featured:true},
-      {label:'Investimento',currVal:curr.totalSpend,   prevVal:prev.totalSpend,   fmt:brl,   prefix:'R$ ', higherIsBetter:false},
-      {label:'Custo/Conv.', currVal:curr.cpl,          prevVal:prev.cpl,          fmt:brl,   prefix:'R$ ', higherIsBetter:false},
-      {label:'Cliques',     currVal:curr.totalClicks,  prevVal:prev.totalClicks,  fmt:fmtN,  prefix:'',    higherIsBetter:true},
-      {label:'CTR',         currVal:curr.ctr,          prevVal:prev.ctr,          fmt:v=>pctFmt(v), prefix:'', higherIsBetter:true},
-      {label:'CPC médio',   currVal:curr.cpc,          prevVal:prev.cpc,          fmt:brl,   prefix:'R$ ', higherIsBetter:false},
-    ];
-  }
-
-  metrics.forEach(m => {
-    const diff = m.prevVal>0 ? ((m.currVal - m.prevVal)/m.prevVal)*100 : 0;
-    const isGood = m.higherIsBetter ? diff>=0 : diff<=0;
-    const isNeutral = Math.abs(diff)<0.05;
-    const deltaClass = isNeutral?'neutral':(isGood?'good':'bad');
-    const arrow = isNeutral?'→':(diff>0?'▲':'▼');
-    const diffStr = (diff>=0?'+':'')+diff.toFixed(1).replace('.',',')+'%';
-
-    const card = document.createElement('div');
-    card.className = 'cmp-card'+(m.featured?' featured':'');
-    card.innerHTML = `
-      <p class="cmp-metric-label">${m.label}</p>
-      <div class="cmp-values">
-        <div class="cmp-val-block">
-          <p class="cmp-val-period">Atual</p>
-          <p class="cmp-val-num is-curr">${m.currVal>0?m.prefix+m.fmt(m.currVal):'—'}</p>
-        </div>
-        <div class="cmp-divider"></div>
-        <div class="cmp-val-block">
-          <p class="cmp-val-period">Anterior</p>
-          <p class="cmp-val-num is-prev">${m.prevVal>0?m.prefix+m.fmt(m.prevVal):'—'}</p>
-        </div>
-        <div class="cmp-divider"></div>
-        <div class="cmp-delta-block">
-          <div class="cmp-delta ${deltaClass}">${arrow} ${diffStr}</div>
-          <p class="cmp-delta-sub">${isNeutral?'estável':(isGood?'melhora':'queda')}</p>
-        </div>
-      </div>`;
-    grid.appendChild(card);
-  });
-
-  // Gráfico de barras comparativo
-  const wrap = document.getElementById('compare-chart-wrap');
-  wrap.innerHTML = `<div class="chart-card" style="grid-column:1/-1;"><p class="chart-title">Visão comparativa — métricas principais</p><div style="position:relative;height:280px;"><canvas id="chartCmp"></canvas></div></div>`;
-
-  if(chartCmp){chartCmp.destroy();chartCmp=null;}
-
-  const cmpLabels = curr.platform==='meta'
-    ? ['Resultados','Cliques','Alcance (K)','Inv. (R$)']
-    : ['Conversões','Cliques','CTR (×100)','Inv. (R$)'];
-
-  const cmpCurr = curr.platform==='meta'
-    ? [curr.totalResults, curr.totalClicks, curr.totalReach/1000, curr.totalSpend]
-    : [curr.totalConv, curr.totalClicks, curr.ctr*100, curr.totalSpend];
-
-  const cmpPrev = curr.platform==='meta'
-    ? [prev.totalResults, prev.totalClicks, prev.totalReach/1000, prev.totalSpend]
-    : [prev.totalConv, prev.totalClicks, prev.ctr*100, prev.totalSpend];
-
-  const accentColor   = curr.platform==='meta' ? 'rgba(201,168,76,0.8)'  : 'rgba(66,133,244,0.8)';
-  const accentBorder  = curr.platform==='meta' ? '#C9A84C'               : '#4285F4';
-  const prevColor     = 'rgba(255,255,255,0.15)';
-  const prevBorder    = 'rgba(255,255,255,0.3)';
-  const tooltipBg     = curr.platform==='meta' ? '#1E1E1E' : '#1A1F2E';
-  const tooltipBorder = curr.platform==='meta' ? 'rgba(201,168,76,0.3)' : 'rgba(66,133,244,0.3)';
-
-  const currLabel = curr.period!=='—'?curr.period:'Mês atual';
-  const prevLabel = prev.period!=='—'?prev.period:'Mês anterior';
-
-  chartCmp = new Chart(document.getElementById('chartCmp').getContext('2d'), {
-    type:'bar',
-    data:{
-      labels:cmpLabels,
-      datasets:[
-        {label:currLabel, data:cmpCurr, backgroundColor:accentColor, borderColor:accentBorder, borderWidth:1.5, borderRadius:6, borderSkipped:false},
-        {label:prevLabel, data:cmpPrev, backgroundColor:prevColor,   borderColor:prevBorder,   borderWidth:1,   borderRadius:6, borderSkipped:false},
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{
-        legend:{display:true, position:'top', labels:{color:textMuted, font:{size:12,family:"'DM Sans',sans-serif"}, boxWidth:12, boxHeight:12, borderRadius:3, useBorderRadius:true, padding:20}},
-        tooltip:{backgroundColor:tooltipBg, borderColor:tooltipBorder, borderWidth:1, titleColor:'#F5F1EA', bodyColor:'rgba(245,241,234,0.7)', padding:12,
-          callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR',{maximumFractionDigits:1})}}
-      },
-      scales:{
-        x:{grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.07)'}, ticks:{color:textMuted,font:{size:12}}},
-        y:{grid:{color:'rgba(255,255,255,0.04)'}, border:{display:false}, ticks:{color:textMuted,font:{size:11}}}
-      }
-    }
-  });
-}
 
 /* ══════════════════════════════════════════
    PERIOD / CLIENT NAME UTILS
@@ -1114,7 +1132,7 @@ function parsePeriodDates(rows,cs,ce){
   return fmt(starts[0])+' — '+fmt(ends[ends.length-1]);
 }
 function extractPeriodFromZip(s){
-  const m=s.match(/(\d{4})[\.\-_](\d{2})[\.\-_](\d{2}).*?(\d{4})[\.\-_](\d{2})[\.\-_](\d{2})/);
+  const m=s.match(/(\d{4})[.\-_](\d{2})[.\-_](\d{2}).*?(\d{4})[.\-_](\d{2})[.\-_](\d{2})/);
   if(!m)return null;
   const months=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   return`${parseInt(m[3])} ${months[parseInt(m[2])-1]} ${m[1]} — ${parseInt(m[6])} ${months[parseInt(m[5])-1]} ${m[4]}`;
