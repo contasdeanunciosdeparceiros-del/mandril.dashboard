@@ -1083,19 +1083,67 @@ function renderComparativo(curr, prev) {
 /* ══════════════════════════════════════════
    SHARE LINK
 ══════════════════════════════════════════ */
+function slimPayload(p) {
+  const r2 = v => Math.round((v||0)*100)/100;
+  const base = { platform:p.platform, clientName:p.clientName, period:p.period };
+  if(p.platform==='meta') {
+    return Object.assign(base, {
+      totalSpend:r2(p.totalSpend), totalResults:p.totalResults,
+      totalReach:p.totalReach,     totalImp:p.totalImp,
+      totalClicks:p.totalClicks,   cpr:r2(p.cpr),
+      cpc:r2(p.cpc), cpm:r2(p.cpm), freq:r2(p.freq), hookAvg:r2(p.hookAvg),
+      campaigns:(p.campaigns||[]).slice(0,10).map(c=>({
+        name:c.name, statusTxt:c.statusTxt, statusCls:c.statusCls,
+        spend:r2(c.spend), results:c.results,
+        cpr:c.cpr!=null?r2(c.cpr):null,
+        reach:c.reach, clicks:c.clicks, isBest:!!c.isBest
+      })),
+      insights:p.insights
+    });
+  } else {
+    return Object.assign(base, {
+      totalSpend:r2(p.totalSpend), totalConv:p.totalConv,
+      totalClicks:p.totalClicks,   totalImp:p.totalImp,
+      cpl:r2(p.cpl), cpc:r2(p.cpc), cvr:r2(p.cvr),
+      ctr:r2(p.ctr), activeDays:p.activeDays,
+      dailyLabels:p.dailyLabels,
+      dailyCost:(p.dailyCost||[]).map(r2),
+      dailyConv:p.dailyConv,
+      groupData:(p.groupData||[]).map(g=>({name:g.name,spend:r2(g.spend)})),
+      kwData:(p.kwData||[]).slice(0,10).map(k=>({word:k.word,spend:r2(k.spend),clicks:k.clicks,ctr:r2(k.ctr)})),
+      insights:p.insights
+    });
+  }
+}
+
 function gerarLink(){
   if(!_payload){alert('Carregue um arquivo primeiro.');return;}
   try{
-    const longUrl=window.location.origin+window.location.pathname+'#d='+LZString.compressToEncodedURIComponent(JSON.stringify(_payload));
-    // Show modal with loading state
+    const slim = slimPayload(_payload);
+    const hash = '#d='+LZString.compressToEncodedURIComponent(JSON.stringify(slim));
+
+    // Detect if running locally (file:// or srcdoc iframe)
+    const origin = window.location.origin;
+    const isLocal = !origin || origin==='null' || origin.startsWith('file://');
+
+    if(isLocal){
+      // Can't generate a shareable link from local context
+      document.getElementById('share-url-display').innerHTML =
+        '<span style="color:#E05252;">⚠ O arquivo está aberto localmente.<br>Para gerar um link compartilhável, hospede o arquivo em um servidor web (ex: GitHub Pages, Netlify) e abra a partir do endereço https://.</span>';
+      document.getElementById('share-modal').style.display='flex';
+      window._shareUrl=null;
+      return;
+    }
+
+    const longUrl = origin + window.location.pathname + hash;
     document.getElementById('share-url-display').textContent='Encurtando link…';
     document.getElementById('share-modal').style.display='flex';
-    window._shareUrl=longUrl;
+    window._shareUrl = longUrl;
 
-    // Try to shorten via TinyURL
-    fetch('https://tinyurl.com/api-create.php?url='+encodeURIComponent(longUrl))
+    fetch('https://is.gd/create.php?format=simple&url='+encodeURIComponent(longUrl))
       .then(r=>r.text())
       .then(short=>{
+        short=short.trim();
         if(short&&short.startsWith('https://')){
           window._shareUrl=short;
           document.getElementById('share-url-display').textContent=short;
