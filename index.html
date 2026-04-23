@@ -1100,52 +1100,115 @@ function renderComparativo(curr, prev) {
 /* ══════════════════════════════════════════
    SHARE LINK
 ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   PAYLOAD COMPRESSION (arrays = ~70% smaller)
+══════════════════════════════════════════ */
 function slimPayload(p) {
   const r2 = v => Math.round((v||0)*100)/100;
-  const base = { platform:p.platform, clientName:p.clientName, period:p.period };
   if(p.platform==='meta') {
-    return Object.assign(base, {
-      totalSpend:r2(p.totalSpend), totalResults:p.totalResults,
-      totalReach:p.totalReach,     totalImp:p.totalImp,
-      totalClicks:p.totalClicks,   cpr:r2(p.cpr),
-      cpc:r2(p.cpc), cpm:r2(p.cpm), freq:r2(p.freq), hookAvg:r2(p.hookAvg),
-      campaigns:(p.campaigns||[]).map(c=>({
-        name:c.name, statusTxt:c.statusTxt, statusCls:c.statusCls,
-        spend:r2(c.spend), results:c.results,
-        cpr:c.cpr!=null?r2(c.cpr):null,
-        reach:c.reach, clicks:c.clicks, isBest:!!c.isBest
-      })),
-      insights:p.insights
-    });
+    return {
+      _v:2, pl:'m', cn:p.clientName, pe:p.period,
+      ts:r2(p.totalSpend), tr:p.totalResults,
+      th:p.totalReach, ti:p.totalImp,
+      tc:p.totalClicks, cr:r2(p.cpr),
+      cc:r2(p.cpc), cm:r2(p.cpm),
+      fr:r2(p.freq), hk:r2(p.hookAvg),
+      // campaigns as arrays: [name, statusCls, spend, results, cpr, reach, clicks, isBest]
+      ca:(p.campaigns||[]).map(c=>[
+        c.name, c.statusCls, r2(c.spend), c.results,
+        c.cpr!=null?r2(c.cpr):0, c.reach, c.clicks, c.isBest?1:0
+      ])
+    };
   } else {
-    return Object.assign(base, {
-      totalSpend:r2(p.totalSpend), totalConv:p.totalConv,
-      totalClicks:p.totalClicks,   totalImp:p.totalImp,
-      cpl:r2(p.cpl), cpc:r2(p.cpc), cvr:r2(p.cvr),
-      ctr:r2(p.ctr), activeDays:p.activeDays,
-      dailyLabels:p.dailyLabels,
-      dailyCost:(p.dailyCost||[]).map(r2),
-      dailyConv:p.dailyConv,
-      groupData:(p.groupData||[]).map(g=>({name:g.name,spend:r2(g.spend)})),
-      kwData:(p.kwData||[]).map(k=>({word:k.word,spend:r2(k.spend),clicks:k.clicks,ctr:r2(k.ctr)})),
-      insights:p.insights
-    });
+    return {
+      _v:2, pl:'g', cn:p.clientName, pe:p.period,
+      ts:r2(p.totalSpend), cv:p.totalConv,
+      tc:p.totalClicks, ti:p.totalImp,
+      cl:r2(p.cpl), cc:r2(p.cpc),
+      cvr:r2(p.cvr), ct:r2(p.ctr), ad:p.activeDays,
+      dl:p.dailyLabels,
+      dc:(p.dailyCost||[]).map(r2),
+      dv:p.dailyConv,
+      // groupData as arrays: [name, spend]
+      gd:(p.groupData||[]).map(g=>[g.name, r2(g.spend)]),
+      // kwData as arrays: [word, spend, clicks, ctr]
+      kw:(p.kwData||[]).map(k=>[k.word, r2(k.spend), k.clicks, r2(k.ctr)])
+    };
   }
 }
 
+function expandPayload(s) {
+  // Old format (no _v) — return as-is
+  if(!s._v) return s;
+  const stMap = {active:'Ativa', paused:'Pausada', inactive:'Inativa'};
+  if(s.pl==='m') {
+    const p = {
+      platform:'meta', clientName:s.cn, period:s.pe,
+      totalSpend:s.ts, totalResults:s.tr,
+      totalReach:s.th, totalImp:s.ti,
+      totalClicks:s.tc, cpr:s.cr, cpc:s.cc,
+      cpm:s.cm, freq:s.fr, hookAvg:s.hk,
+      campaigns:(s.ca||[]).map(c=>({
+        name:c[0], statusCls:c[1], statusTxt:stMap[c[1]]||'Inativa',
+        spend:c[2], results:c[3], cpr:c[4]||null,
+        reach:c[5], clicks:c[6], isBest:!!c[7]
+      }))
+    };
+    p.insights = generateMetaInsights(p);
+    return p;
+  } else {
+    const p = {
+      platform:'google', clientName:s.cn, period:s.pe,
+      totalSpend:s.ts, totalConv:s.cv,
+      totalClicks:s.tc, totalImp:s.ti,
+      cpl:s.cl, cpc:s.cc, cvr:s.cvr,
+      ctr:s.ct, activeDays:s.ad,
+      dailyLabels:s.dl||[], dailyCost:s.dc||[], dailyConv:s.dv||[],
+      groupData:(s.gd||[]).map(g=>({name:g[0], spend:g[1]})),
+      kwData:(s.kw||[]).map(k=>({word:k[0], spend:k[1], clicks:k[2], ctr:k[3]}))
+    };
+    p.insights = generateGoogleInsights(p);
+    return p;
+  }
+}
+
+function generateMetaInsights(p) {
+  const ins = [];
+  const best = [...(p.campaigns||[])].filter(c=>c.results>0).reduce((b,c)=>(!b||c.cpr<b.cpr)?c:b, null);
+  if(best) ins.push({icon:'🏆',title:`${best.name} é a campanha mais eficiente`,text:`Gerou o menor custo por resultado: R$ ${brl(best.cpr)}. Alocar mais orçamento neste formato pode escalar os resultados.`});
+  if(p.totalResults>0) ins.push({icon:'💬',title:`${fmtN(p.totalResults)} resultados gerados`,text:`Cada R$ ${brl(p.cpr)} gerou um resultado direto. Alcance de ${fmtK(p.totalReach)} pessoas únicas no período.`});
+  if(p.freq>=3.5) ins.push({icon:'⚠️',title:'Frequência elevada — atenção à fadiga criativa',text:`Frequência de ${p.freq.toFixed(2).replace('.',',')}×. Considere renovar criativos ou expandir o público.`});
+  else if(p.freq>0) ins.push({icon:'📡',title:`Frequência de ${p.freq.toFixed(2).replace('.',',')}× — entrega equilibrada`,text:`Público impactado de forma consistente sem saturação. CPM de R$ ${brl(p.cpm)}.`});
+  ins.push({icon:'🎯',title:'Custo por resultado',text:`R$ ${brl(p.cpr)} por resultado com CPC de R$ ${brl(p.cpc)}. Investimento de R$ ${brl(p.totalSpend)} gerou ${fmtN(p.totalClicks)} cliques.`});
+  return ins.slice(0,4);
+}
+
+function generateGoogleInsights(p) {
+  const ins = [];
+  const bk = (p.kwData||[])[0];
+  if(bk) ins.push({icon:'🔑',title:`"${bk.word}" é a palavra de maior investimento`,text:`Concentrou R$ ${brl(bk.spend)} com CTR de ${pctFmt(bk.ctr)}.`});
+  if(p.totalConv>0) ins.push({icon:'📞',title:`${fmtN(p.totalConv)} conversões em ${p.activeDays} dias ativos`,text:`Custo por conversão de R$ ${brl(p.cpl)}. Taxa de conversão de ${pctFmt(p.cvr)}.`});
+  if(p.ctr>0.08) ins.push({icon:'🎯',title:`CTR de ${pctFmt(p.ctr)} — excelente relevância`,text:`Taxa de cliques acima de 8% indica alta relevância dos anúncios.`});
+  else if(p.ctr>0) ins.push({icon:'🎯',title:`CTR de ${pctFmt(p.ctr)} — boa visibilidade`,text:`CPC médio de R$ ${brl(p.cpc)} com ${fmtK(p.totalImp)} buscas exibidas.`});
+  ins.push({icon:'📈',title:'Rede de Pesquisa capturando demanda ativa',text:`${fmtN(p.totalClicks)} cliques com R$ ${brl(p.totalSpend)} investidos.`});
+  return ins.slice(0,4);
+}
+
 /* ══════════════════════════════════════════
-   SHARE LINK — JSONBlob + shorteners
+   SHARE LINK
 ══════════════════════════════════════════ */
 async function gerarLink(){
-  if(!_payload){alert('Carregue um arquivo primeiro.');return;}
+  if(!_payload) return;
 
   document.getElementById('base-url-section').style.display='none';
   document.getElementById('share-result-section').style.display='block';
-  document.getElementById('share-url-display').textContent='Salvando dados…';
+  document.getElementById('share-url-display').textContent='Gerando link…';
   document.getElementById('share-modal').style.display='flex';
   window._shareUrl=null;
 
-  // Base URL
+  const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(slimPayload(_payload)));
+  const hash = '#d='+compressed;
+
   const origin  = window.location.origin;
   const isLocal = !origin||origin==='null'||origin.startsWith('file://');
   let baseUrl   = isLocal ? localStorage.getItem('mandril_base_url') : origin+window.location.pathname;
@@ -1154,59 +1217,35 @@ async function gerarLink(){
     document.getElementById('share-result-section').style.display='none';
     document.getElementById('base-url-section').style.display='block';
     document.getElementById('base-url-input').value='';
-    // Store slim payload hash as pending
-    const slim=slimPayload(_payload);
-    window._pendingHash='#d='+LZString.compressToEncodedURIComponent(JSON.stringify(slim));
+    window._pendingHash = hash;
     return;
   }
+
   baseUrl = (baseUrl||'').replace(/#.*$/,'');
-
-  // 1. Try JSONBlob to store data (avoids URL length issue)
-  try{
-    document.getElementById('share-url-display').textContent='Salvando dados…';
-    const slim=slimPayload(_payload);
-    const resp=await fetchWithTimeout('https://jsonblob.com/api/jsonBlob',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Accept':'application/json'},
-      body:JSON.stringify(slim)
-    },8000);
-
-    if(resp.ok){
-      const loc=resp.headers.get('Location');
-      if(loc){
-        const blobId=loc.split('/').pop();
-        const longUrl=baseUrl+'#blob='+blobId;
-        await encurtar(longUrl);
-        return;
-      }
-    }
-  }catch(e){ /* JSONBlob failed, try next */ }
-
-  // 2. Fallback: compressed hash URL + shorten
-  try{
-    document.getElementById('share-url-display').textContent='Encurtando…';
-    const slim=slimPayload(_payload);
-    const longUrl=baseUrl+'#d='+LZString.compressToEncodedURIComponent(JSON.stringify(slim));
-    await encurtar(longUrl);
-  }catch(e){
-    document.getElementById('share-url-display').textContent='Erro ao gerar link. Tente novamente.';
-  }
+  await encurtar(baseUrl+hash);
 }
 
-function fetchWithTimeout(url,opts,ms){
-  const ctrl=new AbortController();
-  const id=setTimeout(()=>ctrl.abort(),ms);
-  return fetch(url,{...opts,signal:ctrl.signal}).finally(()=>clearTimeout(id));
+function confirmarBaseUrl(){
+  const base=document.getElementById('base-url-input').value.trim().replace(/#.*$/,'');
+  if(!base||!base.startsWith('http')){
+    document.getElementById('base-url-input').style.borderColor='rgba(224,82,82,0.6)';
+    return;
+  }
+  localStorage.setItem('mandril_base_url', base);
+  document.getElementById('base-url-section').style.display='none';
+  document.getElementById('share-result-section').style.display='block';
+  encurtar(base+(window._pendingHash||''));
 }
 
 async function encurtar(longUrl){
-  window._shareUrl=longUrl;
+  window._shareUrl = longUrl;
   document.getElementById('share-url-display').textContent='Encurtando…';
 
   // Try is.gd
   try{
-    const r=await fetchWithTimeout('https://is.gd/create.php?format=simple&url='+encodeURIComponent(longUrl),{},6000);
-    const t=(await r.text()).trim();
+    const r = await fetchWithTimeout(
+      'https://is.gd/create.php?format=simple&url='+encodeURIComponent(longUrl), {}, 7000);
+    const t = (await r.text()).trim();
     if(t.startsWith('https://')){
       window._shareUrl=t;
       document.getElementById('share-url-display').textContent=t;
@@ -1216,35 +1255,27 @@ async function encurtar(longUrl){
 
   // Try shrtco.de
   try{
-    const r=await fetchWithTimeout('https://api.shrtco.de/v2/shorten?url='+encodeURIComponent(longUrl),{},6000);
-    const j=await r.json();
-    if(j.ok&&j.result?.full_short_link){
-      window._shareUrl=j.result.full_short_link;
-      document.getElementById('share-url-display').textContent=j.result.full_short_link;
+    const r = await fetchWithTimeout(
+      'https://api.shrtco.de/v2/shorten?url='+encodeURIComponent(longUrl), {}, 7000);
+    const j = await r.json();
+    if(j.ok && j.result?.full_short_link){
+      window._shareUrl = j.result.full_short_link;
+      document.getElementById('share-url-display').textContent = j.result.full_short_link;
       return;
     }
   }catch(e){}
 
-  // Last resort: show the URL as-is
-  document.getElementById('share-url-display').textContent=longUrl;
+  // Fallback: show the URL as-is
+  document.getElementById('share-url-display').textContent = longUrl;
 }
 
-function confirmarBaseUrl(){
-  const base=document.getElementById('base-url-input').value.trim().replace(/#.*$/,'');
-  if(!base||!base.startsWith('http')){
-    document.getElementById('base-url-input').style.borderColor='rgba(224,82,82,0.6)';
-    return;
-  }
-  localStorage.setItem('mandril_base_url',base);
-  document.getElementById('base-url-section').style.display='none';
-  document.getElementById('share-result-section').style.display='block';
-  const longUrl=base+(window._pendingHash||'');
-  encurtar(longUrl);
+function fetchWithTimeout(url,opts,ms){
+  const ctrl=new AbortController();
+  const id=setTimeout(()=>ctrl.abort(),ms);
+  return fetch(url,{...opts,signal:ctrl.signal}).finally(()=>clearTimeout(id));
 }
 
-function shortLink(base,blobId){
-  encurtar(base+'#blob='+blobId);
-}
+function shortLink(base,blobId){ encurtar(base+'#blob='+blobId); }
 function copiarLink(){
   if(!window._shareUrl)return;
   navigator.clipboard.writeText(window._shareUrl).then(()=>{
@@ -1279,10 +1310,11 @@ window.addEventListener('load',()=>{
       }catch(e){console.warn('Erro ao carregar blob:',e);}
 
     } else if(hash.startsWith('#d=')){
-      // Legacy compressed hash
+      // Compressed hash (current format)
       try{
-        const p=JSON.parse(LZString.decompressFromEncodedURIComponent(hash.slice(3)));
-        if(!p) return;
+        const raw=JSON.parse(LZString.decompressFromEncodedURIComponent(hash.slice(3)));
+        if(!raw) return;
+        const p=expandPayload(raw);
         _payload=p; setTheme(p.platform);
         showDashboard();
         if(p.platform==='meta') renderMeta('curr',p);
