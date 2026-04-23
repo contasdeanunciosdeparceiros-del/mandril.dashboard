@@ -1219,12 +1219,39 @@ async function gerarLink(){
     document.getElementById('share-result-section').style.display='none';
     document.getElementById('base-url-section').style.display='block';
     document.getElementById('base-url-input').value='';
+    window._pendingPkg = pkg;
     window._pendingHash = hash;
     return;
   }
 
   baseUrl = (baseUrl||'').replace(/#.*$/,'');
-  await encurtar(baseUrl+hash);
+  const longUrl = baseUrl + hash;
+
+  // Use JSONBlob when URL is too long for shorteners (> 1800 chars)
+  if(longUrl.length > 1800){
+    await salvarBlob(pkg, baseUrl);
+  } else {
+    await encurtar(longUrl);
+  }
+}
+
+async function salvarBlob(pkg, baseUrl){
+  try{
+    const resp = await fetchWithTimeout('https://jsonblob.com/api/jsonBlob',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body: JSON.stringify(pkg)
+    }, 10000);
+    if(resp.ok){
+      const loc = resp.headers.get('Location')||'';
+      const blobId = loc.split('/').pop();
+      if(blobId) { await encurtar(baseUrl+'#blob='+blobId); return; }
+    }
+  }catch(e){}
+  // Fallback: show long URL as-is
+  document.getElementById('share-url-display').textContent = baseUrl + '#d=' +
+    LZString.compressToEncodedURIComponent(JSON.stringify(pkg));
+  window._shareUrl = document.getElementById('share-url-display').textContent;
 }
 
 function confirmarBaseUrl(){
@@ -1236,7 +1263,12 @@ function confirmarBaseUrl(){
   localStorage.setItem('mandril_base_url', base);
   document.getElementById('base-url-section').style.display='none';
   document.getElementById('share-result-section').style.display='block';
-  encurtar(base+(window._pendingHash||''));
+  const longUrl = base+(window._pendingHash||'');
+  if(window._pendingPkg && longUrl.length > 1800){
+    salvarBlob(window._pendingPkg, base);
+  } else {
+    encurtar(longUrl);
+  }
 }
 
 async function encurtar(longUrl){
@@ -1302,13 +1334,22 @@ window.addEventListener('load',()=>{
           headers:{'Accept':'application/json'}
         });
         if(!resp.ok) throw new Error('blob not found');
-        const p=await resp.json();
-        if(!p) return;
+        const data=await resp.json();
+        if(!data) return;
+        // Support combined format {c, p} and legacy single-payload
+        const currRaw = data.c || data;
+        const prevRaw = data.p || null;
+        const p = data.c ? expandPayload(currRaw) : currRaw; // legacy blobs stored full payload
         _payload=p; setTheme(p.platform);
         showDashboard();
         if(p.platform==='meta') renderMeta('curr',p);
         else renderGoogle('curr',p);
         document.getElementById('top-actions').querySelector('.action-btn.alt').style.display='none';
+        if(prevRaw){
+          const pp=expandPayload(prevRaw);
+          _payloadPrev=pp;
+          renderPrevDashboardAndCompare();
+        }
       }catch(e){console.warn('Erro ao carregar blob:',e);}
 
     } else if(hash.startsWith('#d=')){
