@@ -964,26 +964,21 @@ async function readGoogleCompare(file) {
 /* ══════════════════════════════════════════
    RENDER PREV DASHBOARD + COMPARISON
 ══════════════════════════════════════════ */
-function renderPrevDashboardAndCompare() {
+function renderPrevDashboardAndCompare(noScroll) {
   const prev=_payloadPrev;
   const curr=_payload;
 
-  // Show the separator
   document.getElementById('dash-divider').style.display='block';
 
-  // Show prev dashboard
   const prevWrap=document.getElementById('dash-prev');
   prevWrap.style.display='block';
 
-  // Render prev month data into prev dashboard
   if(prev.platform==='meta') renderMeta('prev', prev);
   else renderGoogle('prev', prev);
 
-  // Render comparativo section
   renderComparativo(curr, prev);
 
-  // Scroll smoothly to prev dashboard
-  setTimeout(()=>prevWrap.scrollIntoView({behavior:'smooth',block:'start'}),150);
+  if(!noScroll) setTimeout(()=>prevWrap.scrollIntoView({behavior:'smooth',block:'start'}),150);
 }
 
 /* ══════════════════════════════════════════
@@ -1197,61 +1192,57 @@ function generateGoogleInsights(p) {
 /* ══════════════════════════════════════════
    SHARE LINK
 ══════════════════════════════════════════ */
+const SITE_BASE_URL = 'https://contasdeanunciosdeparceiros-del.github.io/mandril.dashboard/';
+
+function getBaseUrl(){
+  const origin = window.location.origin;
+  const isLocal = !origin||origin==='null'||origin.startsWith('file://');
+  if(isLocal) return localStorage.getItem('mandril_base_url') || SITE_BASE_URL;
+  return (origin + window.location.pathname).replace(/#.*$/,'');
+}
+
 async function gerarLink(){
   if(!_payload) return;
 
   document.getElementById('base-url-section').style.display='none';
   document.getElementById('share-result-section').style.display='block';
-  document.getElementById('share-url-display').textContent='Gerando link…';
+  document.getElementById('share-url-display').textContent='Salvando dados…';
   document.getElementById('share-modal').style.display='flex';
   window._shareUrl=null;
 
   const pkg = { c: slimPayload(_payload) };
-  if (_payloadPrev) pkg.p = slimPayload(_payloadPrev);
-  const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(pkg));
-  const hash = '#d='+compressed;
+  if(_payloadPrev) pkg.p = slimPayload(_payloadPrev);
 
-  const origin  = window.location.origin;
-  const isLocal = !origin||origin==='null'||origin.startsWith('file://');
-  let baseUrl   = isLocal ? localStorage.getItem('mandril_base_url') : origin+window.location.pathname;
-
-  if(isLocal && !baseUrl){
-    document.getElementById('share-result-section').style.display='none';
-    document.getElementById('base-url-section').style.display='block';
-    document.getElementById('base-url-input').value='';
-    window._pendingPkg = pkg;
-    window._pendingHash = hash;
-    return;
-  }
-
-  baseUrl = (baseUrl||'').replace(/#.*$/,'');
-  const longUrl = baseUrl + hash;
-
-  // Use JSONBlob when URL is too long for shorteners (> 1800 chars)
-  if(longUrl.length > 1800){
-    await salvarBlob(pkg, baseUrl);
-  } else {
-    await encurtar(longUrl);
-  }
+  await salvarECompartilhar(pkg, getBaseUrl());
 }
 
-async function salvarBlob(pkg, baseUrl){
+async function salvarECompartilhar(pkg, baseUrl){
+  baseUrl = (baseUrl||SITE_BASE_URL).replace(/#.*$/,'');
+
+  // Tenta JSONBlob — ID vem no header Location
   try{
     const resp = await fetchWithTimeout('https://jsonblob.com/api/jsonBlob',{
       method:'POST',
       headers:{'Content-Type':'application/json','Accept':'application/json'},
       body: JSON.stringify(pkg)
-    }, 10000);
-    if(resp.ok){
-      const loc = resp.headers.get('Location')||'';
+    }, 12000);
+    if(resp.status===201){
+      const loc = resp.headers.get('Location') || resp.headers.get('location') || '';
       const blobId = loc.split('/').pop();
-      if(blobId) { await encurtar(baseUrl+'#blob='+blobId); return; }
+      if(blobId){
+        const finalUrl = baseUrl + '#blob=' + blobId;
+        window._shareUrl = finalUrl;
+        document.getElementById('share-url-display').textContent = finalUrl;
+        return;
+      }
     }
   }catch(e){}
-  // Fallback: show long URL as-is
-  document.getElementById('share-url-display').textContent = baseUrl + '#d=' +
-    LZString.compressToEncodedURIComponent(JSON.stringify(pkg));
-  window._shareUrl = document.getElementById('share-url-display').textContent;
+
+  // Fallback: hash comprimido direto na URL
+  const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(pkg));
+  const finalUrl = baseUrl + '#d=' + compressed;
+  window._shareUrl = finalUrl;
+  document.getElementById('share-url-display').textContent = finalUrl;
 }
 
 function confirmarBaseUrl(){
@@ -1263,44 +1254,7 @@ function confirmarBaseUrl(){
   localStorage.setItem('mandril_base_url', base);
   document.getElementById('base-url-section').style.display='none';
   document.getElementById('share-result-section').style.display='block';
-  const longUrl = base+(window._pendingHash||'');
-  if(window._pendingPkg && longUrl.length > 1800){
-    salvarBlob(window._pendingPkg, base);
-  } else {
-    encurtar(longUrl);
-  }
-}
-
-async function encurtar(longUrl){
-  window._shareUrl = longUrl;
-  document.getElementById('share-url-display').textContent='Encurtando…';
-
-  // Try is.gd
-  try{
-    const r = await fetchWithTimeout(
-      'https://is.gd/create.php?format=simple&url='+encodeURIComponent(longUrl), {}, 7000);
-    const t = (await r.text()).trim();
-    if(t.startsWith('https://')){
-      window._shareUrl=t;
-      document.getElementById('share-url-display').textContent=t;
-      return;
-    }
-  }catch(e){}
-
-  // Try shrtco.de
-  try{
-    const r = await fetchWithTimeout(
-      'https://api.shrtco.de/v2/shorten?url='+encodeURIComponent(longUrl), {}, 7000);
-    const j = await r.json();
-    if(j.ok && j.result?.full_short_link){
-      window._shareUrl = j.result.full_short_link;
-      document.getElementById('share-url-display').textContent = j.result.full_short_link;
-      return;
-    }
-  }catch(e){}
-
-  // Fallback: show the URL as-is
-  document.getElementById('share-url-display').textContent = longUrl;
+  salvarECompartilhar(window._pendingPkg, base);
 }
 
 function fetchWithTimeout(url,opts,ms){
@@ -1346,18 +1300,15 @@ window.addEventListener('load',()=>{
         else renderGoogle('curr',p);
         document.getElementById('top-actions').querySelector('.action-btn.alt').style.display='none';
         if(prevRaw){
-          const pp=expandPayload(prevRaw);
-          _payloadPrev=pp;
-          renderPrevDashboardAndCompare();
+          _payloadPrev=expandPayload(prevRaw);
+          renderPrevDashboardAndCompare(true);
         }
       }catch(e){console.warn('Erro ao carregar blob:',e);}
 
     } else if(hash.startsWith('#d=')){
-      // Compressed hash (current format)
       try{
         const raw=JSON.parse(LZString.decompressFromEncodedURIComponent(hash.slice(3)));
         if(!raw) return;
-        // Support new combined format {c, p} and legacy single-payload format
         const currRaw = raw.c || raw;
         const prevRaw = raw.p || null;
         const p=expandPayload(currRaw);
@@ -1367,9 +1318,8 @@ window.addEventListener('load',()=>{
         else renderGoogle('curr',p);
         document.getElementById('top-actions').querySelector('.action-btn.alt').style.display='none';
         if(prevRaw){
-          const pp=expandPayload(prevRaw);
-          _payloadPrev=pp;
-          renderPrevDashboardAndCompare();
+          _payloadPrev=expandPayload(prevRaw);
+          renderPrevDashboardAndCompare(true);
         }
       }catch(e){console.warn('Hash inválido',e);}
     }
