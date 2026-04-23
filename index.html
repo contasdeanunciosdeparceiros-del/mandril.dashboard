@@ -363,11 +363,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="modal-overlay" id="share-modal" style="display:none;" onclick="if(event.target===this)fecharModal()">
   <div class="modal-box">
     <p class="modal-title">Link do cliente</p>
-    <p class="modal-sub">Copie e envie este link. O cliente abre o dashboard já preenchido — sem precisar fazer upload de nada.</p>
-    <div class="modal-url" id="share-url-display"></div>
-    <div class="modal-actions">
-      <button class="modal-copy" onclick="copiarLink()">Copiar link</button>
-      <button class="modal-close" onclick="fecharModal()">Fechar</button>
+
+    <!-- Step 1: base URL input (shown when local) -->
+    <div id="base-url-section" style="display:none;">
+      <p class="modal-sub">Informe o endereço onde este arquivo está hospedado para gerar o link compartilhável:</p>
+      <input type="url" id="base-url-input"
+        placeholder="https://seusite.com/dashboard.html"
+        style="width:100%;background:#0a0a0a;border:0.5px solid rgba(255,255,255,0.15);border-radius:8px;padding:11px 14px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;margin-bottom:12px;outline:none;">
+      <p style="font-size:11px;color:var(--text-dim);margin-bottom:20px;">Salvo automaticamente para os próximos relatórios.</p>
+      <div class="modal-actions">
+        <button class="modal-copy" onclick="confirmarBaseUrl()">Gerar link →</button>
+        <button class="modal-close" onclick="fecharModal()">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Step 2: short link result -->
+    <div id="share-result-section" style="display:none;">
+      <p class="modal-sub">Copie e envie este link. O cliente abre o dashboard já preenchido — sem precisar fazer upload de nada.</p>
+      <div class="modal-url" id="share-url-display"></div>
+      <div class="modal-actions">
+        <button class="modal-copy" onclick="copiarLink()">Copiar link</button>
+        <button class="modal-close" onclick="fecharModal()">Fechar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1118,43 +1135,58 @@ function slimPayload(p) {
 
 function gerarLink(){
   if(!_payload){alert('Carregue um arquivo primeiro.');return;}
-  try{
-    const slim = slimPayload(_payload);
-    const hash = '#d='+LZString.compressToEncodedURIComponent(JSON.stringify(slim));
+  const slim = slimPayload(_payload);
+  const hash = '#d='+LZString.compressToEncodedURIComponent(JSON.stringify(slim));
 
-    // Detect if running locally (file:// or srcdoc iframe)
-    const origin = window.location.origin;
-    const isLocal = !origin || origin==='null' || origin.startsWith('file://');
+  const origin = window.location.origin;
+  const isLocal = !origin || origin==='null' || origin.startsWith('file://');
 
-    if(isLocal){
-      // Can't generate a shareable link from local context
-      document.getElementById('share-url-display').innerHTML =
-        '<span style="color:#E05252;">⚠ O arquivo está aberto localmente.<br>Para gerar um link compartilhável, hospede o arquivo em um servidor web (ex: GitHub Pages, Netlify) e abra a partir do endereço https://.</span>';
-      document.getElementById('share-modal').style.display='flex';
-      window._shareUrl=null;
-      return;
-    }
+  // Reset modal state
+  document.getElementById('base-url-section').style.display='none';
+  document.getElementById('share-result-section').style.display='none';
+  document.getElementById('share-modal').style.display='flex';
 
+  if(!isLocal){
+    // Hosted — use current URL directly
     const longUrl = origin + window.location.pathname + hash;
-    document.getElementById('share-url-display').textContent='Encurtando link…';
-    document.getElementById('share-modal').style.display='flex';
-    window._shareUrl = longUrl;
+    gerarLinkFromUrl(longUrl);
+  } else {
+    // Local — ask for hosting URL (pre-fill from localStorage)
+    const saved = localStorage.getItem('mandril_base_url') || '';
+    document.getElementById('base-url-input').value = saved;
+    document.getElementById('base-url-section').style.display='block';
+    window._pendingHash = hash;
+  }
+}
 
-    fetch('https://is.gd/create.php?format=simple&url='+encodeURIComponent(longUrl))
-      .then(r=>r.text())
-      .then(short=>{
-        short=short.trim();
-        if(short&&short.startsWith('https://')){
-          window._shareUrl=short;
-          document.getElementById('share-url-display').textContent=short;
-        } else {
-          document.getElementById('share-url-display').textContent=longUrl;
-        }
-      })
-      .catch(()=>{
+function confirmarBaseUrl(){
+  const base = document.getElementById('base-url-input').value.trim().replace(/#.*$/,'');
+  if(!base || !base.startsWith('http')){
+    document.getElementById('base-url-input').style.borderColor='rgba(224,82,82,0.6)';
+    return;
+  }
+  localStorage.setItem('mandril_base_url', base);
+  document.getElementById('base-url-section').style.display='none';
+  gerarLinkFromUrl(base + window._pendingHash);
+}
+
+function gerarLinkFromUrl(longUrl){
+  document.getElementById('share-result-section').style.display='block';
+  document.getElementById('share-url-display').textContent='Encurtando…';
+  window._shareUrl = longUrl;
+
+  fetch('https://is.gd/create.php?format=simple&url='+encodeURIComponent(longUrl))
+    .then(r=>r.text())
+    .then(short=>{
+      short=short.trim();
+      if(short&&short.startsWith('https://')){
+        window._shareUrl=short;
+        document.getElementById('share-url-display').textContent=short;
+      } else {
         document.getElementById('share-url-display').textContent=longUrl;
-      });
-  }catch(e){alert('Erro ao gerar link: '+e.message);}
+      }
+    })
+    .catch(()=>{ document.getElementById('share-url-display').textContent=longUrl; });
 }
 function copiarLink(){
   if(!window._shareUrl)return;
