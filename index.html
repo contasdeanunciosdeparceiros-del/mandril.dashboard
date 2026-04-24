@@ -1219,7 +1219,7 @@ async function salvarECompartilhar(pkg, baseUrl){
   baseUrl = (baseUrl||SITE_BASE_URL).replace(/#.*$/,'');
 
   const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(pkg));
-  const longUrl = baseUrl + '#d=' + compressed;
+  const longUrl = baseUrl + '?d=' + compressed;
 
   // Tenta is.gd
   try{
@@ -1281,9 +1281,32 @@ function fecharModal(){document.getElementById('share-modal').style.display='non
 /* ══════════════════════════════════════════
    AUTO-LOAD FROM URL HASH
 ══════════════════════════════════════════ */
+function loadFromCompressed(raw){
+  try{
+    if(!raw) return;
+    const currRaw = raw.c || raw;
+    const prevRaw = raw.p || null;
+    const p = expandPayload(currRaw);
+    _payload=p; setTheme(p.platform);
+    showDashboard();
+    if(p.platform==='meta') renderMeta('curr',p);
+    else renderGoogle('curr',p);
+    document.getElementById('top-actions').querySelector('.action-btn.alt').style.display='none';
+    if(prevRaw){ _payloadPrev=expandPayload(prevRaw); renderPrevDashboardAndCompare(true); }
+  }catch(e){console.warn('Erro ao carregar dados:',e);}
+}
+
 window.addEventListener('load',()=>{
   setTimeout(async ()=>{
     const hash=window.location.hash;
+    const search=window.location.search;
+
+    // Novo formato: ?d= (query param, funciona com encurtadores)
+    const qd = new URLSearchParams(search).get('d');
+    if(qd){
+      loadFromCompressed(JSON.parse(LZString.decompressFromEncodedURIComponent(qd)));
+      return;
+    }
 
     if(hash.startsWith('#blob=')){
       // Load from JSONBlob
@@ -1311,22 +1334,8 @@ window.addEventListener('load',()=>{
       }catch(e){console.warn('Erro ao carregar blob:',e);}
 
     } else if(hash.startsWith('#d=')){
-      try{
-        const raw=JSON.parse(LZString.decompressFromEncodedURIComponent(hash.slice(3)));
-        if(!raw) return;
-        const currRaw = raw.c || raw;
-        const prevRaw = raw.p || null;
-        const p=expandPayload(currRaw);
-        _payload=p; setTheme(p.platform);
-        showDashboard();
-        if(p.platform==='meta') renderMeta('curr',p);
-        else renderGoogle('curr',p);
-        document.getElementById('top-actions').querySelector('.action-btn.alt').style.display='none';
-        if(prevRaw){
-          _payloadPrev=expandPayload(prevRaw);
-          renderPrevDashboardAndCompare(true);
-        }
-      }catch(e){console.warn('Hash inválido',e);}
+      // Formato legado (compatibilidade com links antigos)
+      loadFromCompressed(JSON.parse(LZString.decompressFromEncodedURIComponent(hash.slice(3))));
     }
   },400);
 });
