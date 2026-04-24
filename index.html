@@ -1221,7 +1221,19 @@ async function salvarECompartilhar(pkg, baseUrl){
   const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(pkg));
   const longUrl = baseUrl + '#d=' + compressed;
 
-  // Tenta TinyURL (CORS ok, suporta fragmento #)
+  // Tenta is.gd
+  try{
+    const r = await fetchWithTimeout(
+      'https://is.gd/create.php?format=simple&url='+encodeURIComponent(longUrl), {}, 8000);
+    const t = (await r.text()).trim();
+    if(t.startsWith('https://')){
+      window._shareUrl = t;
+      document.getElementById('share-url-display').textContent = t;
+      return;
+    }
+  }catch(e){}
+
+  // Fallback TinyURL
   try{
     const r = await fetchWithTimeout(
       'https://tinyurl.com/api-create.php?url='+encodeURIComponent(longUrl), {}, 8000);
