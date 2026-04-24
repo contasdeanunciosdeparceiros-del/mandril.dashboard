@@ -1233,10 +1233,10 @@ async function salvarECompartilhar(pkg, baseUrl){
     }
   }catch(e){}
 
-  // Fallback TinyURL
+  // Fallback v.gd (mesma rede do is.gd)
   try{
     const r = await fetchWithTimeout(
-      'https://tinyurl.com/api-create.php?url='+encodeURIComponent(longUrl), {}, 8000);
+      'https://v.gd/create.php?format=simple&url='+encodeURIComponent(longUrl), {}, 8000);
     const t = (await r.text()).trim();
     if(t.startsWith('https://')){
       window._shareUrl = t;
@@ -1245,7 +1245,7 @@ async function salvarECompartilhar(pkg, baseUrl){
     }
   }catch(e){}
 
-  // Fallback: mostra URL direto
+  // Fallback: mostra URL direto (já é curta com ?d=)
   window._shareUrl = longUrl;
   document.getElementById('share-url-display').textContent = longUrl;
 }
