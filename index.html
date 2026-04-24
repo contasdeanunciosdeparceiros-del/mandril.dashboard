@@ -1221,22 +1221,34 @@ async function salvarECompartilhar(pkg, baseUrl){
   const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(pkg));
   const longUrl = baseUrl + '?d=' + compressed;
 
-  // spoo.me — CORS liberado, sem API key
-  try{
-    const r = await fetchWithTimeout('https://spoo.me/', {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded','Accept':'application/json'},
-      body:'url='+encodeURIComponent(longUrl)
-    }, 8000);
-    const j = await r.json();
-    if(j.short_url){
-      window._shareUrl = j.short_url;
-      document.getElementById('share-url-display').textContent = j.short_url;
-      return;
-    }
-  }catch(e){}
+  const tentarEncurtar = async (apiUrl, opts, extrairUrl) => {
+    try{
+      const r = await fetchWithTimeout(apiUrl, opts, 8000);
+      const url = await extrairUrl(r);
+      if(url && url.startsWith('http')){
+        window._shareUrl = url;
+        document.getElementById('share-url-display').textContent = url;
+        return true;
+      }
+    }catch(e){ console.warn('Encurtador falhou:', apiUrl, e); }
+    return false;
+  };
 
-  // Fallback: mostra URL direto
+  // 1. cleanuri.com
+  if(await tentarEncurtar('https://cleanuri.com/api/v1/shorten',
+    {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'url='+encodeURIComponent(longUrl)},
+    async r=>{ const j=await r.json(); return j.result_url; })) return;
+
+  // 2. is.gd
+  if(await tentarEncurtar('https://is.gd/create.php?format=simple&url='+encodeURIComponent(longUrl),
+    {}, async r=>{ const t=(await r.text()).trim(); return t; })) return;
+
+  // 3. spoo.me
+  if(await tentarEncurtar('https://spoo.me/',
+    {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Accept':'application/json'},body:'url='+encodeURIComponent(longUrl)},
+    async r=>{ const j=await r.json(); return j.short_url; })) return;
+
+  // Fallback: URL direto (funciona, só é longa)
   window._shareUrl = longUrl;
   document.getElementById('share-url-display').textContent = longUrl;
 }
